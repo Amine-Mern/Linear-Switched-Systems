@@ -40,9 +40,9 @@ def initialize_parameters() :
         'F': F,
         'D': D,
         'nx': A.shape[0],
-        'ny': C.shape[0],
+        'ny': D.shape[0],
         'nu': D.shape[1],
-        'np': A.shape[2],
+        'np': K.shape[2],
         'N': N,
         'Nval': Nval,
         'Ntot': Ntot
