@@ -12,7 +12,7 @@ def initialize_parameters() :
     D = np.array([[1]])
     N = 1000
     Nval = 1000
-    Ntot = 2000
+    Ntot = N + Nval
     
     return {
         'A': A,
