@@ -33,9 +33,13 @@ class LPV:
     isEquivalent()
     
     """
-    def __init__(self,A,B,K,C,D,F):
+    def __init__(self, A, B, C, D, K=None, F=None):
         """
         Constructor of the Linear Parameter Varying system
+        
+        Parameters:
+        - A, B, C, D: system matrices (can be 3D arrays)
+        - K, F: optional noise-related matrices
         """
         self.A = A
         self.B = B
@@ -43,12 +47,20 @@ class LPV:
         self.C = C
         self.D = D
         self.F = F
-    
+        
+        self.nx = A.shape[0]
+        self.ny = C.shape[0]
+        self.nu = D.shape[1]
+        self.np = A.shape[2] if A.ndim == 3 else 1
+        
     
     def simulate_y(self):
+        return None
     
     def simulate_Innovation(self):
+        return None
     
     def isEquivalent(self):
+        return None
     
         
