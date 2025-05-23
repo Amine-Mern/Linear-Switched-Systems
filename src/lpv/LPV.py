@@ -6,32 +6,42 @@ class LPV:
     This concrete class defines the common structure for LPV system models,
     Especially useful for define specific LPV models such as (asLPV and dLPV..)
     
-    (A CORRIGER)
     Parameters
     ----------------
-    A : ndArray
-         Constant Matrix in LPV system
-    B : ndArray
-         Constant Matrix in LPV system
-    K : ndArray
-         Constant Matrix in LPV system
+    A : np.ndarray
+        3D array representing the state transition matrices.
+    B : np.ndarray
+        3D array representing the input matrices.
+    C : np.ndarray
+        2D array representing the output matrix.
+    D : np.ndarray
+        2D array representing the feedthrough matrix.
+    K : np.ndarray, optional
+        3D array representing the process noise matrices. Default is None.
+    F : np.ndarray, optional
+        2D array representing the measurement noise matrix. Default is None.
     
-    C : ndArray 
-         Constnat Matrix in LPV system
-    D : ndArray
-         Constnat Matrix in LPV system
-    F : ndArray
-         Constnat Matrix in LPV system
-    
-    
-    
+    Attributes
+    ----------
+    nx : int
+        Number of states.
+    ny : int
+        Number of outputs.
+    nu : int
+        Number of inputs.
+    np : int
+        Number of scheduling parameters.
+
     Methods
-    ----------------
-    Simulate_y()
+    -------
+    simulate_y(u, v, p, Ntot)
+        Simulates the LPV system output over a time horizon.
     
-    Simulate_Innovation()
-    
-    isEquivalent()
+    simulate_Innovation()
+
+    isEquivalent(other, x0, x0_other, tolerance=1e-5)
+        Checks whether this LPV system is equivalent to another LPV system
+        by comparing their Markov parameters.
     
     """
     def __init__(self, A, B, C, D, K=None, F=None):
@@ -98,7 +108,7 @@ class LPV:
     def simulate_Innovation(self):
         return None
     
-    def isEquivalent(self, other, x0, x0_other, tolerance=None):
+    def isEquivalentTo(self, other, x0, x0_other, tolerance=None):
         """
         Check if this LPV is equivalent to another LPV system by comparing their
         Markov parameters up to a certain order.
@@ -160,3 +170,4 @@ class LPV:
 
 
         
+
