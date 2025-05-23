@@ -36,7 +36,7 @@ def main():
     sys1 = LPV(A1, B1, C1, D1)
     sys2 = LPV(A2, B2, C2, D2)
 
-    print("Équivalents ?", sys1.isEquivalent(sys2, x01, x02), "\n")
+    print("Équivalents ?", sys1.isEquivalentTo(sys2, x01, x02), "\n")
 
     print("---------- TEST 2 : Non equivalent systems ----------")
     A1[:, :, 0] = np.array([[0.9, 0.1],
@@ -68,7 +68,7 @@ def main():
     sys1 = LPV(A1, B1, C1, D1)
     sys2 = LPV(A2, B2, C2, D2)
 
-    print("Équivalents ?", sys1.isEquivalent(sys2, x01, x02))
+    print("Équivalents ?", sys1.isEquivalentTo(sys2, x01, x02))
 
 if __name__ == "__main__":
     main()
