@@ -1,5 +1,5 @@
 import numpy as np
-from lpv import LPV
+from LPV import LPV
 
 def main():
 
