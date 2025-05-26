@@ -63,10 +63,11 @@ class LPV:
         self.nx = A.shape[0]
         self.ny = C.shape[0]
         
-        if (D != None) :
-            self.nu = D.shape[1]
-        else :
-            self.nu = 0
+        #if (D != None) :
+        #self.nu = D.shape[1]
+        self.nu = None
+        #else :
+        #    self.nu = 0
         
         self.np = A.shape[2] if A.ndim == 3 else 1
         
@@ -126,15 +127,16 @@ class LPV:
         
         Returns :
         - Res : Innovation error noise (if used on as-LPV (F @ v(t)))
-                 : Static contribution of the input to the output (if used on dLPV (D @ u(t)))
+                 : Static contribution of the input to( the output (if used on dLPV (D @ u(t)))
         
         """
+        np_ = self.np
         x1 = np.zeros((self.nx,Ntot+1))
         Res = np.zeros((self.ny,Ntot))
-        for k in range(1,Ntot+1):
+        for k in range(Ntot):
             Res[:,k] = y[:,k] - self.C @ x1[:,k]
-            for i in range(1,np+1):
-                x1[:,k+1] += (self.A[:,:,i] @ x[:,k] + self.K[:,:,i] @ Res[:,k]) * p[i,k];
+            for i in range(np_):
+                x1[:,k+1] += (self.A[:,:,i] @ x1[:,k] + self.K[:,:,i] @ Res[:,k]) * p[i,k];
         
         Res[:,-1] = y[:,-1] - self.C @ x1[:,-1]
         return Res

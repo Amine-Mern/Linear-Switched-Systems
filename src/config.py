@@ -32,18 +32,51 @@ def initialize_parameters() :
     N = 1000
     Nval = 1000
     Ntot = N + Nval
-    
+    np_ = K.shape[2]
+    nx = A.shape[0]
+    ny = D.shape[0]
+    nu = D.shape[1]
+    u = calculate_u(nu,Ntot)
+    v = calculate_v(ny,Ntot)
+    p = calculate_p(Ntot)
+    psig = calculate_psig(np_,Ntot,p)
     return {
         'A': A,
         'K': K,
         'C': C,
         'F': F,
         'D': D,
-        'nx': A.shape[0],
-        'ny': D.shape[0],
-        'nu': D.shape[1],
-        'np': K.shape[2],
+        'nx': nx,
+        'ny': ny,
+        'nu': ny,
+        'np': np_,
+        'u':u,
+        'v':v,
+        'psig':psig,
+        'p':p,
         'N': N,
         'Nval': Nval,
         'Ntot': Ntot
     }
+
+def calculate_u(nu,Ntot):
+    return 3*np.random.rand(nu,Ntot) - 1.5
+
+def calculate_v(ny,Ntot):
+    return np.random.randn(ny,Ntot)
+
+def calculate_p(Ntot):
+    p = np.zeros((2,Ntot))
+    
+    p[0,:] = np.ones(Ntot)
+    
+    p[1,:] =  3 * np.random.rand(Ntot) - 1.5
+    
+    return p
+
+def calculate_psig(np_,Ntot,p):
+    psig = np.zeros((np_, 1))
+    for i in range(np_):
+        psig[i, 0] = np.var(p[i, :]) + np.mean(p[i, :])**2
+        
+    return psig
