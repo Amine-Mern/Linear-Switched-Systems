@@ -1,5 +1,6 @@
 import numpy as np
 from LPV import LPV
+from dLPV import dLPV
 
 def main():
 
@@ -33,12 +34,12 @@ def main():
     x01 = np.array([0.0, 0.0])
     x02 = np.array([0.0, 0.0])
 
-    sys1 = LPV(A1, B1, C1, D1)
-    sys2 = LPV(A2, B2, C2, D2)
+    sys1 = LPV(A1, C1, B1, D1)
+    sys2 = LPV(A2, C2, B2, D2)
 
     print("Équivalents ?", sys1.isEquivalentTo(sys2, x01, x02), "\n")
 
-    print("---------- TEST 2 : Non equivalent systems ----------")
+    print("\n---------- TEST 2 : Non equivalent systems ----------")
     A1[:, :, 0] = np.array([[0.9, 0.1],
                             [0.0, 0.5]])
     A1[:, :, 1] = np.array([[0.3, 0.0],
@@ -65,10 +66,46 @@ def main():
     x01 = np.array([0.0, 0.0])
     x02 = np.array([0.0, 0.0])
 
-    sys1 = LPV(A1, B1, C1, D1)
-    sys2 = LPV(A2, B2, C2, D2)
+    sys1 = LPV(A1, C1, B1, D1)
+    sys2 = LPV(A2, C2, B2, D2)
 
     print("Équivalents ?", sys1.isEquivalentTo(sys2, x01, x02))
+    
+    print("\n---------- TEST 3 : Reachability reduction on dLPV ----------")
+
+    nx = 2  
+    nu = 1 
+    ny = 1 
+    np_ = 2
+    
+    A = np.zeros((nx, nx, np_))
+    B = np.zeros((nx, nu, np_))
+    C = np.ones((ny, nx))  
+
+    A[:, :, 0] = np.array([[1.0, 0.0],
+                           [0.0, 1.0]])
+    A[:, :, 1] = np.array([[0.5, 0.0],
+                           [0.0, 0.5]])
+    
+    B[:, :, 0] = np.array([[1.0],
+                           [0.0]])
+    B[:, :, 1] = np.array([[0.0],
+                           [1.0]])
+
+    D_mat = np.zeros((ny, nu))  
+
+    x0 = np.array([0.1, 0.2])
+
+    system = dLPV(A, C, B, D_mat)
+
+    Reach_mat, red_order, Ar, Br, Cr, x0r = system.reach_reduction(x0)
+
+    print("Reachability matrix Reach_mat:\n", Reach_mat)
+    print("Reduced order:", red_order)
+    print("Reduced Ar:\n", Ar)
+    print("Reduced Br:\n", Br)
+    print("Reduced Cr:\n", Cr)
+    print("Reduced initial state x0r:\n", x0r)
 
 if __name__ == "__main__":
     main()
