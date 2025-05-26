@@ -37,20 +37,21 @@ class LPV:
     simulate_y(u, v, p, Ntot)
         Simulates the LPV system output over a time horizon.
     
-    simulate_Innovation()
+    simulate_Innovation(y,p,Ntot)
+        Simulates the innovation error of an LPV system in innovation form
 
     isEquivalent(other, x0, x0_other, tolerance=1e-5)
         Checks whether this LPV system is equivalent to another LPV system
         by comparing their Markov parameters.
     
     """
-    def __init__(self, A, B, C, D, K=None, F=None):
+    def __init__(self, A, C, B = None, D = None, K = None, F=None):
         """
         Constructor of the Linear Parameter Varying system
         
         Parameters:
-            - A, B, C, D: system matrices (can be 3D arrays)
-            - K, F: optional noise-related matrices
+            - A, B, C: system matrices (can be 3D arrays)
+            - D, K, F: optional noise-related matrices
         """
         self.A = A
         self.B = B
@@ -61,7 +62,12 @@ class LPV:
         
         self.nx = A.shape[0]
         self.ny = C.shape[0]
-        self.nu = D.shape[1]
+        
+        if (D != None) :
+            self.nu = D.shape[1]
+        else :
+            self.nu = 0
+        
         self.np = A.shape[2] if A.ndim == 3 else 1
         
     
@@ -105,8 +111,33 @@ class LPV:
             ynf[:, k] = self.C @ x[:, k]
         return y, ynf, x
     
-    def simulate_Innovation(self):
-        return None
+    def simulate_Innovation(self,Ntot,y,p):
+        """
+        If used on :
+        asLPV : Simulates the innovation error of an LPV system in innovation form
+        dLPV : Simulates the contribution of the input to the output 
+        
+        Parameters :
+        - p : ndarray
+                  Scheduling vector
+        
+        - y : ndarray
+                  Output with noise
+        
+        Returns :
+        - Res : Innovation error noise (if used on as-LPV (F @ v(t)))
+                 : Static contribution of the input to the output (if used on dLPV (D @ u(t)))
+        
+        """
+        x1 = np.zeros((self.nx,Ntot+1))
+        Res = np.zeros((self.ny,Ntot))
+        for k in range(1,Ntot+1):
+            Res[:,k] = y[:,k] - self.C @ x1[:,k]
+            for i in range(1,np+1):
+                x1[:,k+1] += (self.A[:,:,i] @ x[:,k] + self.K[:,:,i] @ Res[:,k]) * p[i,k];
+        
+        Res[:,-1] = y[:,-1] - self.C @ x1[:,-1]
+        return Res
     
     def isEquivalentTo(self, other, x0, x0_other, tolerance=None):
         """
