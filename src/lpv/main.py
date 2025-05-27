@@ -118,6 +118,44 @@ def main():
     print("U =", U)
     print("s", s)
     print("Vh", Vh)
+    
+    print("\n---------- TEST 4 : Observability Reduction on dLPV ----------")
+
+    nx = 2    
+    nu = 1    
+    ny = 1    
+    np_ = 2   
+
+    A = np.zeros((nx, nx, np_))
+    B = np.zeros((nx, nu, np_))
+    C = np.array([[1.0, 0.0]])  
+    D = np.zeros((ny, nu))    
+
+    A[:, :, 0] = np.array([[1.0, 0.1],
+                           [0.0, 1.0]])
+    A[:, :, 1] = np.array([[0.9, 0.2],
+                           [0.0, 0.95]])
+
+    B[:, :, 0] = np.array([[1.0],
+                           [0.0]])
+    B[:, :, 1] = np.array([[0.0],
+                           [1.0]])
+    x0 = np.array([0.1, 0.2])
+    system = dLPV(A, C, B, D)
+
+    Obs_mat, red_order, Ar, Br, Cr, x0r = system.obs_reduction(x0)
+
+    print("Observability matrix Obs_mat:\n", Obs_mat)
+    print("Reduced order (observability):", red_order)
+    print("Reduced Ao (3D):")
+    for i in range(np_):
+        print(f"Ao[:,:,{i}]:\n", Ar[:, :, i])
+    print("Reduced Bo (3D):")
+    for i in range(np_):
+        print(f"Bo[:,:,{i}]:\n", Br[:, :, i])
+    print("Reduced Co:\n", Cr)
+    print("Reduced initial state x0o:\n", x0r)
+
 
 if __name__ == "__main__":
     main()
