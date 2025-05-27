@@ -1,5 +1,6 @@
 from LPV import LPV
 import numpy as np
+from scipy.linalg import orth
 
 class dLPV(LPV):
     """
@@ -85,6 +86,9 @@ class dLPV(LPV):
                 the columns of A, and the number of columns of Q is the rank of A.
         """
         U, s, Vh = np.linalg.svd(A, full_matrices=False)
+        print("/////////////////U = ", U)
+        V = Vh.T
+        Vh = V
         
         if s.size>0 and (np.isnan(s[0] or np.isinf(s[0]))):
             raise ValueError("Input matrix contains Nan or Inf values.")
@@ -121,25 +125,41 @@ class dLPV(LPV):
                   Reduced initial state vector
         """
         Anum = np.vstack([self.A[:, :, i] for i in range(self.np)])
+        print("A = ",Anum)
         Bnum = np.hstack([self.B[:, :, i] for i in range(self.np)])
+        print("B = ",Bnum)
         Cnum = np.vstack([self.C for _ in range(self.np)])
+        print("C = ",Cnum)
         x0 = x0.reshape(-1, 1)
         B_hat = np.hstack([x0, Bnum])
+        print("B_hat", B_hat)
+        print("x_0", x0)
         
-        V_f = self.__orth(self, B_hat)
+        V_f = self.__orth(self, B_hat,1e-6)
+        print("V_f = ", V_f)
         V_0 = V_f.copy()
+        print("V_0 = ", V_0)
         
         quit = False
         while not quit :
             r = np.linalg.matrix_rank(V_f)
+            print("r", r)
             V_prime = V_0.copy()
+            print("V_prime", V_prime)
             for j in range(self.np):
                 Aj = Anum[j * self.nx:(j + 1) * self.nx, :]
                 V_prime = np.hstack([V_prime, Aj @ V_f])
-            V_f = self.__orth(self, V_prime)
+                print("V_prim ", V_prime, j)
+            print("V_primeFinal =", V_prime)
+            print("othooooo ", orth(V_prime))
+            print("V_f", V_f)
+            V_f = self.__orth(self, V_prime, 1e-6)
+            print("--------V_F",V_f)
             quit = (r == np.linalg.matrix_rank(V_f))
+            print("r", r)
         
         Reach_mat = V_f
+        print("Reach_mat", Reach_mat)
         reduced_order = Reach_mat.shape[1]
 
         Ar = np.zeros((self.np * reduced_order, reduced_order))
@@ -152,3 +172,5 @@ class dLPV(LPV):
             Ar[q * reduced_order:(q + 1) * reduced_order, :] = Reach_mat.T @ Aq @ Reach_mat
 
         return Reach_mat, reduced_order, Ar, Br, Cr, x0r
+
+

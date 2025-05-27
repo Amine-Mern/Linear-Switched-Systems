@@ -1,6 +1,8 @@
 import numpy as np
 from LPV import LPV
 from dLPV import dLPV
+from scipy.linalg import orth
+
 
 def main():
 
@@ -106,6 +108,16 @@ def main():
     print("Reduced Br:\n", Br)
     print("Reduced Cr:\n", Cr)
     print("Reduced initial state x0r:\n", x0r)
+    
+    A2 = np.array([[0.4472, 0.8944, 0.4472, 0.8944, 0.2236, 0.4472],
+                [0.8944, -0.4472, 0.8944, -0.4472, 0.4472, -0.2236]])
+    
+    O = orth(A2)
+    print("O =", O)
+    U, s, Vh = np.linalg.svd(A2, full_matrices=False)
+    print("U =", U)
+    print("s", s)
+    print("Vh", Vh)
 
 if __name__ == "__main__":
     main()
