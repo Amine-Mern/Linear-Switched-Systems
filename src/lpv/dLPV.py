@@ -155,4 +155,54 @@ class dLPV(LPV):
 
         return Reach_mat, reduced_order, Ar, Br, Cr, x0r
 
+    
+    def obs_reduction(self, x0):
+        """
+        Perform observability reduction of the dLPV system.
 
+        Parameters:
+            x0 : ndarray
+                 Initial state vector 
+
+        Returns:
+            Wf : ndarray
+                 Observability matrix 
+            reduced_order : int
+                            Dimension of the reduced observable system
+            Ao : ndarray
+                 Reduced A matrix 
+            Bo : ndarray
+                 Reduced B matrix 
+            Co : ndarray
+                 Reduced C matrix 
+            x0o : ndarray
+                  Reduced initial state
+        """
+        x0 = x0.reshape(-1,1)
+
+        Wf = orth(self.C.T)
+        r = np.linalg.matrix_rank(Wf)
+
+        quit = False
+        while not quit:
+            Wprime = self.C.T
+            for i in range(self.np):
+                Wprime = np.hstack((Wprime, self.A[:, :, i].T @ Wf))
+            new_Wf = orth(Wprime)
+            quit = new_Wf.shape[1] == r
+            r = new_Wf.shape[1]
+            Wf = new_Wf
+
+        reduced_order = r
+
+        Ar = np.zeros((reduced_order, reduced_order, self.np))
+        Br = np.zeros((reduced_order, self.B.shape[1], self.np))
+        for i in range(self.np):
+            Ar[:, :, i] = Wf.T @ self.A[:, :, i] @ Wf
+            Br[:, :, i] = Wf.T @ self.B[:, :, i]
+
+        Cr = self.C @ Wf
+        x0r = Wf.T @ x0
+
+        Obs_mat = Wf
+        return Obs_mat, reduced_order, Ar, Br, Cr, x0r
