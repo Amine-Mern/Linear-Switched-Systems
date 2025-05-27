@@ -158,6 +158,20 @@ def main():
         print(f"Bo[:,:,{i}]:\n", Br[:, :, i])
     print("Reduced Co:\n", Cr)
     print("Reduced initial state x0o:\n", x0r)
+    
+    print("\n---------- TEST 5 : Minimal Realization of dLPV ----------")
+    
+    minimal_sys, x0_min = system.minimize(x0)
+    print("Minimal realization:")
+    print("Original order:", nx)
+    print("Minimal order:", minimal_sys.nx)
+    print("Reduced initial state:", x0_min.flatten())
+
+    for i in range(minimal_sys.np):
+        print(f"Amin[:,:,{i}]:\n", minimal_sys.A[:, :, i])
+    for i in range(minimal_sys.np):
+        print(f"Bmin[:,:,{i}]:\n", minimal_sys.B[:, :, i])
+    print("Cmin:\n", minimal_sys.C)
 
 
 if __name__ == "__main__":
