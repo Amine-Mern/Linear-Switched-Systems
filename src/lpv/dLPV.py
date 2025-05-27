@@ -207,3 +207,27 @@ class dLPV(LPV):
 
         Obs_mat = Wf
         return Obs_mat, reduced_order, Ar, Br, Cr, x0r
+    
+    def minimize(self, x0):
+        """
+        Perform minimal realization reduction of the dLPV system.
+
+        Parameters:
+            x0 : ndarray
+                 Initial state vector.
+
+        Returns:
+            minimal_sys : dLPV
+                          Reduced minimal dLPV system.
+            x0m : ndarray
+                  Reduced initial state vector.
+        """
+        x0 = x0.reshape(-1,1)
+        
+        Reach_mat, red_ord_r, Ar, Br, Cr, x0r = self.reach_reduction(x0)
+        
+        temp_sys = dLPV(Ar, Cr, Br, np.zeros((self.ny, self.nu)))
+        Obs_mat, red_ord_m, Ao, Bo, Co, x0m = temp_sys.obs_reduction(x0r)
+        
+        minimal_sys = dLPV(Ao, Co, Bo, np.zeros((self.ny, self.nu)))
+        return minimal_sys, x0m               
