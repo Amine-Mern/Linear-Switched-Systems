@@ -45,64 +45,6 @@ class dLPV(LPV):
     Recursion()
     """
     
-    def __init__(self, A, C, B, D):
-        super().__init__(A, C, B, D, K=None, F=None)
-    
-    @staticmethod
-    def __get_tolerance(s, max_size_A):
-        """
-        Compute tolerance for singular values comparison used in orthogonalization.
-
-        Parameters:
-            s : np.ndarray
-                Array of singular values.
-            max_size_A : int
-                         Maximum dimension size of the matrix for tolerance scaling.
-
-        Returns:
-                float
-                Tolerance value for determining numerical rank.
-        """
-        if s.size == 0:
-            return 0.0
-        if not np.all(np.isfinite(s)):
-            return np.finfo(s.dtype).max # realmax
-        return max_size_A * np.spacing(np.max(s))
-    
-    @staticmethod
-    def __orth(self, A, tol=None):
-        """
-        Compute an orthonormal basis for the range of A.
-    
-        Parameters:
-            A : np.ndarray
-                Input matrix.
-            tol : float, optional
-                Tolerance for small singular values. If None, it will be computed.
-    
-        Returns:
-            Q : np.ndarray
-                Orthonormal basis for the range of A. That is, Q'*Q = I, the columns of Q span the same space as 
-                the columns of A, and the number of columns of Q is the rank of A.
-        """
-        U, s, Vh = np.linalg.svd(A, full_matrices=False)
-        print("/////////////////U = ", U)
-        V = Vh.T
-        Vh = V
-        
-        if s.size>0 and (np.isnan(s[0] or np.isinf(s[0]))):
-            raise ValueError("Input matrix contains Nan or Inf values.")
-        
-        if tol is None:
-            tol = self.__get_tolerance(s, max(A.shape))
-        else:
-            if not (np.isscalar(tol) and isinstance(tol, (float, int))):
-                raise ValueError("Tolerance must be a real scalar.")
-            
-        rank = np.sum(s>tol)
-        Q = U[:, :rank]
-        return Q
-    
     def reach_reduction(self, x0):
         """
         Perform reachability reduction of the dLPV system
@@ -135,7 +77,7 @@ class dLPV(LPV):
         print("B_hat", B_hat)
         print("x_0", x0)
         
-        V_f = self.__orth(self, B_hat,1e-6)
+        V_f = orth( B_hat,1e-6)
         print("V_f = ", V_f)
         V_0 = V_f.copy()
         print("V_0 = ", V_0)
@@ -153,7 +95,7 @@ class dLPV(LPV):
             print("V_primeFinal =", V_prime)
             print("othooooo ", orth(V_prime))
             print("V_f", V_f)
-            V_f = self.__orth(self, V_prime, 1e-6)
+            V_f = orth( V_prime, 1e-6)
             print("--------V_F",V_f)
             quit = (r == np.linalg.matrix_rank(V_f))
             print("r", r)
