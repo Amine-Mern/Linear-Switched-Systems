@@ -144,15 +144,16 @@ class dLPV(LPV):
         print("Reach_mat", Reach_mat)
         reduced_order = Reach_mat.shape[1]
 
-        Ar = np.zeros((self.np * reduced_order, reduced_order))
-        Br = Reach_mat.T @ Bnum
-        Cr = Cnum @ Reach_mat
+        Ar = np.zeros((reduced_order, reduced_order, self.np))
+        Br = np.zeros((reduced_order, self.nu, self.np))
+        
+        for i in range(self.np):
+            Ar[:, :, i] = Reach_mat.T @ self.A[:, :, i] @ Reach_mat
+            Br[:, :, i] = Reach_mat.T @ self.B[:, :, i]
+
+        Cr = self.C @ Reach_mat
         x0r = Reach_mat.T @ x0
-
-        for q in range(self.np):
-            Aq = Anum[q * self.nx:(q + 1) * self.nx, :]
-            Ar[q * reduced_order:(q + 1) * reduced_order, :] = Reach_mat.T @ Aq @ Reach_mat
-
+        
         return Reach_mat, reduced_order, Ar, Br, Cr, x0r
 
     

@@ -104,8 +104,11 @@ def main():
 
     print("Reachability matrix Reach_mat:\n", Reach_mat)
     print("Reduced order:", red_order)
-    print("Reduced Ar:\n", Ar)
-    print("Reduced Br:\n", Br)
+    for i in range(np_):
+        print(f"Ao[:,:,{i}]:\n", Ar[:, :, i])
+    print("Reduced Bo (3D):")
+    for i in range(np_):
+        print(f"Bo[:,:,{i}]:\n", Br[:, :, i])
     print("Reduced Cr:\n", Cr)
     print("Reduced initial state x0r:\n", x0r)
     
