@@ -38,5 +38,4 @@ print("y :" ,y)
 
 err = LpvSys.simulate_Innovation(Ntot,y,p)
 print("innov")
-
 print(err)
