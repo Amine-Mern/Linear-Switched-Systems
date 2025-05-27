@@ -34,6 +34,8 @@ class dLPV(LPV):
     Methods
     -------
     
+    simulate_y()
+    
     minimizeDLPV()
     
     reach_reduction()
@@ -44,6 +46,44 @@ class dLPV(LPV):
     
     Recursion()
     """
+    
+    def __init__(self, A, C, B, D):
+        super().__init__(A, C, B, D, K=None, F=None)
+        
+    def simulate_y(self, u, v, p, Ntot):
+        """
+        Simulate the dLPV system output
+        
+        Parameters:
+            - u : ndarray
+                  Input array
+            - v : ndarray
+                  Noise array, can be None if no noise
+            - p : ndarray
+                  Scheduling
+            - Ntot : int
+                     Total number of time steps
+            
+        Returns:
+            - y : ndarray
+                  Output with noise
+            - yif : ndarray
+                    Output input free
+            - x : ndarray
+                  State trajectory
+        """
+        nx, ny, np_ = self.nx, self.ny, self.np
+        x = np.zeros((nx, Ntot))
+        y = np.zeros((ny, Ntot))
+        yif = np.zeros((ny, Ntot))
+        
+        for k in range (Ntot-1):
+            for i in range(np_):
+                x[:, k+1] += (self.A[:, :, i] @ x[:, k] + self.B[:, :, i] @ u[:, k]) * p[i, k] 
+            y[:, k] = self.C @ x[:, k] + self.D @ u[:, k]
+            yif[:, k] = self.C @ x[:, k]
+        return y, yif, x
+    
     
     def reach_reduction(self, x0):
         """
