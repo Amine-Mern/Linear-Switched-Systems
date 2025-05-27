@@ -1,5 +1,6 @@
 from LPV import LPV
 import numpy as np
+import math
 
 class asLPV(LPV):
     """
@@ -49,8 +50,8 @@ class asLPV(LPV):
     """
     
     def __init__(self, A, C, K, F):
+        self.ne = K.shape[1]
         super().__init__(A, C, K=K, F=F, B=None, D=None,)
-    
     
     def isFormInnovation(self,psig):
         """
@@ -66,27 +67,70 @@ class asLPV(LPV):
         epsi = 10**(-5)
                 
         max_abs_eigval = max(abs(np.linalg.eigvals(M))) #Maximal absolut eigen value
-        print(max_abs_eigval)
-        print(M)
         
         b1 = max_abs_eigval < 1 - epsi
         b2 = np.array_equal(self.F, np.eye(self.ny))
         
         return b1 and b2
         
-    def Computing_Gi():
+    def compute_vsp(v):
         """
-        Computes the matrix G_i used in the innovation form of the LPV system.
+        Computes the average outer product of global variable v.
+        UNTESTED
         """
-    
-    def Compute_Pi():
-        """
-        Computes the stationary covariance matrix P_i via iterative Lyapunov recursion.
-        """
-    
-    def Compute_Qi():
+        Ntot = v.shape[1]
+        ny = v.shape[0]
+        v_esp = np.zeros((ny,ny))
+        for i in range(Ntot):
+            v_esp = v_esp + v[:,i].reshape(-1,1) @ v[:,i].reshape(1,-1)
+        v_esp /= Ntot
+
+    def Compute_Qi(self,v,p):
         """
         Compute the matrix Q_i = E[v(t) v(t)^T * mu_i(t)^2]
+        UNTESTED
+        """
+        Q_true = np.zeros((self.ne, self.ne, self.np))
+        Ntot = v.shape[1]
+        for i in range(self.np):
+            for t in range(self.Ntot):
+                Q_true[:,:,i] = Q_true[:,:,i] + v[:,i].reshape(-1,1) @ v[:,i].reshape(1,-1) * (p[i,t]**2)
+            Q_true[:,:,i] = Q_true[:,:,i]/Ntot
+        return Q_true
+        
+    def Compute_Pi(self):
+        """
+        Computes the stationary covariance matrix P_i via iterative Lyapunov recursion.
+        UNFINISHED
+        """
+        P_true_old = np.zeros((self.nx, self.nx, self.np))
+        P_true_new = np.zeros((self.nx,self.nx,self.np))
+        for i in range(self.np):
+            P_true_old[:,:,i] = zeros(self.nx,self.nx)
+        
+        max_ = np.ones(np,1)
+        while max_ > 10**(-5) *  np.ones(self.np):
+            for sig in range(np):
+                P_true_new[:,:,sig] = zeros(self.nx,self.nx)
+                for sig1 in range(np):
+                    P_true_new[:,:,sig] = P_true_new[:,:,sig] + psig[sig,1] @ (A[:,:,sig1] @ P_true_old[:,:,sig1]@ A[:,:,sig1].reshape(-1,1) + k[:,:,sig1] @ Q_true[:,:,sig1] @ K[:,:,sig1].reshape(-1,1))
+            for i in range(self.np):
+                max_[i] = norm(P_true_new[:,:,i] - P_true_old[:,:,i])/norm(P_true_old[:,:,sig1] @ A[:,:,sig1].T + K[:,:,sig1] @ Q_true[:,:,sig1] @ K[:,:,sig1].T)
+            return P_true_new
+    
+    def Computing_Gi(v,psig,p,Q_true,P_true_new):
+        """
+        Computes the matrix G_i used in the innovation form of the LPV system.
+        UNTESTED
+        """
+        G_true = np.zeros((nx, ny, np_))
+        for i in range(np):
+            G_true[:,:,i] = (1/math.sqrt(psig[i,1])) @ (self.A[:,:,i] @ P_true_new[:,:,i] @ self.C.T + K[:,:,i] @ Q_true[:,:,i] @ F.T)
+        return G_true
+    
+    def convertToDLPV():
+        """
+        Converts an asLPV to an dLPV
         """
     
     def stochMinimize():
