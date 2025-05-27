@@ -63,11 +63,10 @@ class LPV:
         self.nx = A.shape[0]
         self.ny = C.shape[0]
         
-        #if (D != None) :
-        #self.nu = D.shape[1]
-        self.nu = None
-        #else :
-        #    self.nu = 0
+        if (D != None) :
+            self.nu = D.shape[1]
+        else :
+            self.nu = 0
         
         self.np = A.shape[2] if A.ndim == 3 else 1
         
