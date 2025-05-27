@@ -100,13 +100,9 @@ class LPV:
         
         for k in range (Ntot-1):
             for i in range(np_):
-                term_noise = 0
-                if self.K is not None and v is not None:
-                    term_noise = self.K[:,:,1] @ v[:,k]
+                term_noise = self.K[:,:,1] @ v[:,k]
                 x[:, k+1] += (self.A[:, :, i] @ x[:, k] + self.B[:, :, i] @ u[:, k] + term_noise) * p[i, k] 
-            noise_output = 0
-            if self.F is not None and v is not None:
-                noise_output = self.F @ v[:,k]
+            noise_output = self.F @ v[:,k]
             y[:, k] = self.C @ x[:, k] + self.D @ u[:, k] + noise_output
             ynf[:, k] = self.C @ x[:, k]
         return y, ynf, x
