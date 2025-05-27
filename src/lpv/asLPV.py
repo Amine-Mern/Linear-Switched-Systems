@@ -52,13 +52,27 @@ class asLPV(LPV):
         super().__init__(A, C, K=K, F=F, B=None, D=None,)
     
     
-    def isFormInnovation():
+    def isFormInnovation(self,psig):
         """
         Checks if the autonomous stochastic Linear Parameter Varying System is
         Innovation Form
         
         Returns : Boolean
         """
+        M = np.zeros((self.nx**2,self.nx**2))
+        for i in range(1,self.np):
+            A_KC = self.A[:,:,i]-self.K[:,:,i] @ self.C
+            M += psig[i] * np.kron(A_KC,A_KC);
+        epsi = 10**(-5)
+                
+        max_abs_eigval = max(abs(np.linalg.eigvals(M))) #Maximal absolut eigen value
+        print(max_abs_eigval)
+        print(M)
+        
+        b1 = max_abs_eigval < 1 - epsi
+        b2 = np.array_equal(self.F, np.eye(self.ny))
+        
+        return b1 and b2
         
     def Computing_Gi():
         """
