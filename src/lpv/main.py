@@ -171,6 +171,62 @@ def main():
     for i in range(minimal_sys.np):
         print(f"Bmin[:,:,{i}]:\n", minimal_sys.B[:, :, i])
     print("Cmin:\n", minimal_sys.C)
+    
+    
+    print("---------- TEST 6 : isIsomorphic ----------")
+
+    nx = 2
+    nu = 1
+    ny = 1
+    np_ = 2
+
+    A1 = np.zeros((nx, nx, np_))
+    B1 = np.zeros((nx, nu, np_))
+    C1 = np.array([[1.0, 0.0]])
+    D1 = np.zeros((ny, nu))
+
+    A1[:, :, 0] = np.array([[1.0, 0.1],
+                            [0.0, 0.9]])
+    A1[:, :, 1] = np.array([[0.8, 0.2],
+                            [0.1, 0.7]])
+    B1[:, :, 0] = np.array([[1.0],
+                            [0.0]])
+    B1[:, :, 1] = np.array([[0.0],
+                            [1.0]])
+
+    T = np.array([[2.0, 1.0],
+                  [0.0, 1.0]])
+    T_inv = np.linalg.inv(T)
+
+    A2 = np.zeros_like(A1)
+    B2 = np.zeros_like(B1)
+    for i in range(np_):
+        A2[:, :, i] = T @ A1[:, :, i] @ T_inv
+        B2[:, :, i] = T @ B1[:, :, i]
+    C2 = C1 @ T_inv
+    D2 = D1.copy()
+
+    x0 = np.array([0.0, 0.0])
+    x0_other = np.array([0.0, 0.0])
+
+    sys1 = dLPV(A1, C1, B1, D1)
+    sys2 = dLPV(A2, C2, B2, D2)
+
+    # Test isomorphisc
+    result_iso = sys1.isIsomorphic(sys2, x0, x0_other)
+    print("Isomorphic (expected True):", result_iso)
+
+    # test not isomorphic
+    A3 = np.zeros((3, 3, np_))
+    B3 = np.zeros((3, nu, np_))
+    C3 = np.array([[1.0, 0.0, 0.0]])
+    D3 = np.zeros((ny, nu))
+
+    sys3 = dLPV(A3, C3, B3, D3)
+    x0_other3 = np.zeros(3)
+
+    result_non_iso = sys1.isIsomorphic(sys3, x0, x0_other3)
+    print("Isomorphic (expected False):", result_non_iso)
 
 if __name__ == "__main__":
     main()
