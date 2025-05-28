@@ -84,6 +84,74 @@ class dLPV(LPV):
             yif[:, k] = self.C @ x[:, k]
         return y, yif, x
     
+#     @staticmethod
+#     def __get_tolerance(s, max_size_A):
+#         """
+#         Compute tolerance for singular values comparison used in orthogonalization.
+# 
+#         Parameters:
+#             s : np.ndarray
+#                 Array of singular values.
+#             max_size_A : int
+#                          Maximum dimension size of the matrix for tolerance scaling.
+# 
+#         Returns:
+#                 float
+#                 Tolerance value for determining numerical rank.
+#         """
+#         if s.size == 0:
+#             return 0.0
+#         if not np.all(np.isfinite(s)):
+#             return np.finfo(s.dtype).max # realmax
+#         return max_size_A * np.spacing(np.max(s))
+#     
+#     @staticmethod
+#     def svd_matlab_style(A):
+#         U, s, Vh = np.linalg.svd(A, full_matrices=False)
+#         
+#         for i in range(U.shape[1]):
+#             col = U[:, i]
+#             first_nonzero = np.flatnonzero(col)
+#             if first_nonzero.size > 0 and col[first_nonzero[0]] < 0:
+#                 U[:, i] *= -1
+#                 Vh[i, :] *= -1 
+# 
+#         return U, s, Vh
+#     
+#     @staticmethod
+#     def __orth(self, A, tol=None):
+#         """
+#         Compute an orthonormal basis for the range of A.
+#     
+#         Parameters:
+#             A : np.ndarray
+#                 Input matrix.
+#             tol : float, optional
+#                 Tolerance for small singular values. If None, it will be computed.
+#     
+#         Returns:
+#             Q : np.ndarray
+#                 Orthonormal basis for the range of A. That is, Q'*Q = I, the columns of Q span the same space as 
+#                 the columns of A, and the number of columns of Q is the rank of A.
+#         """
+#         U, s, Vh = self.svd_matlab_style(A)
+#         print("/////////////////U = ", U)
+#         V = Vh.T
+#         Vh = V
+#         
+#         if s.size>0 and (np.isnan(s[0] or np.isinf(s[0]))):
+#             raise ValueError("Input matrix contains Nan or Inf values.")
+#         
+#         if tol is None:
+#             tol = self.__get_tolerance(s, max(A.shape))
+#         else:
+#             if not (np.isscalar(tol) and isinstance(tol, (float, int))):
+#                 raise ValueError("Tolerance must be a real scalar.")
+#             
+#         rank = np.sum(s>tol)
+#         Q = U[:, :rank]
+#         return Q
+    
     
     def reach_reduction(self, x0):
         """
@@ -117,7 +185,7 @@ class dLPV(LPV):
         print("B_hat", B_hat)
         print("x_0", x0)
         
-        V_f = orth( B_hat,1e-6)
+        V_f = orth( B_hat)
         print("V_f = ", V_f)
         V_0 = V_f.copy()
         print("V_0 = ", V_0)
@@ -135,7 +203,7 @@ class dLPV(LPV):
             print("V_primeFinal =", V_prime)
             print("othooooo ", orth(V_prime))
             print("V_f", V_f)
-            V_f = orth( V_prime, 1e-6)
+            V_f = orth(V_prime)
             print("--------V_F",V_f)
             quit = (r == np.linalg.matrix_rank(V_f))
             print("r", r)
@@ -153,6 +221,15 @@ class dLPV(LPV):
 
         Cr = self.C @ Reach_mat
         x0r = Reach_mat.T @ x0
+        
+        for i in range(self.np):
+            print(f"Ar[:,:,{i}]:\n", Ar[:, :, i])
+        for i in range(self.np):
+            print(f"Br[:,:,{i}]:\n", Br[:, :, i])
+        print("Cr = ",  Cr)
+        print("x0r = ", x0r)
+        print("reach_mat = ", Reach_mat)
+        print("r = " ,reduced_order)
         
         return Reach_mat, reduced_order, Ar, Br, Cr, x0r
 
@@ -179,17 +256,24 @@ class dLPV(LPV):
             x0o : ndarray
                   Reduced initial state
         """
+        print("-----------------obssss startedd---------------")
+        Cnum = np.vstack([self.C for _ in range(self.np)])
         x0 = x0.reshape(-1,1)
-
-        Wf = orth(self.C.T)
+        print("Cnum =" ,Cnum)
+        Wf = orth(Cnum.T)
+        Wf = Wf
+        print("Wf = " , Wf)
         r = np.linalg.matrix_rank(Wf)
+        print("r", r)
 
         quit = False
         while not quit:
-            Wprime = self.C.T
+            Wprime = Cnum.T
             for i in range(self.np):
                 Wprime = np.hstack((Wprime, self.A[:, :, i].T @ Wf))
+                print("W_prime = ", Wprime, i)
             new_Wf = orth(Wprime)
+            print("new_Wf = ", new_Wf, i)
             quit = new_Wf.shape[1] == r
             r = new_Wf.shape[1]
             Wf = new_Wf
@@ -206,6 +290,14 @@ class dLPV(LPV):
         x0r = Wf.T @ x0
 
         Obs_mat = Wf
+        for i in range(self.np):
+            print(f"Ao[:,:,{i}]:\n", Ar[:, :, i])
+        for i in range(self.np):
+            print(f"Bo[:,:,{i}]:\n", Br[:, :, i])
+        print("Co = ",  Cr)
+        print("x0r = ", x0r)
+        print("Obs_mat = ", Obs_mat)
+        print("r = " ,reduced_order)
         return Obs_mat, reduced_order, Ar, Br, Cr, x0r
     
     def minimize(self, x0):

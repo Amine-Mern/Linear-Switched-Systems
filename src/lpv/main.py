@@ -3,7 +3,6 @@ from LPV import LPV
 from dLPV import dLPV
 from scipy.linalg import orth
 
-
 def main():
 
     print("---------- TEST 1 : Equivalent Systems ----------")
@@ -172,7 +171,6 @@ def main():
     for i in range(minimal_sys.np):
         print(f"Bmin[:,:,{i}]:\n", minimal_sys.B[:, :, i])
     print("Cmin:\n", minimal_sys.C)
-
 
 if __name__ == "__main__":
     main()
