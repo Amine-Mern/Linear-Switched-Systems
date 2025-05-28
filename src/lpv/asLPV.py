@@ -73,7 +73,7 @@ class asLPV(LPV):
         
         return b1 and b2
         
-    def compute_vsp(v):
+    def compute_vsp(self,v):
         """
         Computes the average outer product of global variable v.
         UNTESTED
@@ -82,8 +82,9 @@ class asLPV(LPV):
         ny = v.shape[0]
         v_esp = np.zeros((ny,ny))
         for i in range(Ntot):
-            v_esp = v_esp + v[:,i].reshape(-1,1) @ v[:,i].reshape(1,-1)
+            v_esp = v_esp + v[:,i] @ v[:,i].T
         v_esp /= Ntot
+        return v_esp
 
     def Compute_Qi(self,v,p):
         """

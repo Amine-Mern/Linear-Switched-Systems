@@ -41,18 +41,16 @@ err = LpvSys.simulate_Innovation(Ntot,y,p)
 print("innov")
 print(err)
 
-print("Test : IsFormInnovation is True")
+print("Test 1 : IsFormInnovation is True")
 asLPVsys = asLPV(A,C,K,F)
 
 print(asLPVsys.isFormInnovation(psig))
 
-print("Test  : IsFormInnovation is False beacuse of F not identity")
+print("Test  2 : IsFormInnovation is False beacuse of F not identity")
 asLPVsys = asLPVsys = asLPV(A,C,K,np.array([[2]]))
 print(asLPVsys.isFormInnovation(psig))
 
-print("Test : IsFormInnovation is False because of Unstable Matrixs eigval >= 1")
-
-import numpy as np
+print("Test 3 : IsFormInnovation is False because of Unstable Matrixs eigval >= 1")
 
 A1= np.zeros((2, 2, 2))
 A1[:, :, 0] = np.array([[1.2, 0.0],
@@ -72,6 +70,13 @@ psig1 = np.array([0.5, 0.5])
 
 
 asLPVsys1 = asLPV(A1,C1,K1,F1)
-
 print(asLPVsys1.isFormInnovation(psig1))
+
+print("Test 4 : Compute_vesp")
+asLPVsys = asLPV(A,C,K,F)
+
+v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
+expected = 1.83663002
+
+print(asLPVsys.compute_vsp(v_test)[0][0])
 
