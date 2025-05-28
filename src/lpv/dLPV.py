@@ -322,4 +322,83 @@ class dLPV(LPV):
         Obs_mat, red_ord_m, Ao, Bo, Co, x0m = temp_sys.obs_reduction(x0r)
         
         minimal_sys = dLPV(Ao, Co, Bo, np.zeros((self.ny, self.nu)))
-        return minimal_sys, x0m               
+        return minimal_sys, x0m
+    
+    
+    
+    def isIsomorphic(self, other, x0, x0_other):
+        """
+        Check whether two dLPV systems are isomorphic (equivalent up to a change of state basis).
+
+        Parameters:
+            other : dLPV
+                Another LPV system to compare with.
+            x0 : ndarray
+                 Initial state vector for the dLPV.
+            x0_other : ndarray
+                 Initial state vector for the other dLPV.    
+
+        Returns:
+            bool : True if systems are isomorphic, False otherwise.
+        """
+        tol = 1e-10
+        if not isinstance(other, dLPV):
+            raise ValueError("Other system must be an instance of dLPV.")
+        if self.nx != other.nx or self.np != other.np:
+            return False
+        
+        Anum3 = np.zeros((2 * self.nx, 2 * self.nx, self.np))
+        Bnum3 = np.zeros((2 * self.nx, self.nu, self.np))
+        
+        
+        # Create merged system (combined observability test)
+        for i in range(self.np):
+            Anum3[:, :, i] = np.block([
+                [self.A[:, :, i], np.zeros((self.nx, self.nx))],
+                [np.zeros((self.nx, self.nx)), other.A[:, :, i]]
+            ])
+            Bnum3[:, :, i] = np.vstack([
+                self.B[:, :, i],
+                other.B[:, :, i]
+            ])
+        print("Anum3 = ", Anum3)
+        print("Bnum3 = ", Bnum3)
+        Cnum3 = np.hstack([self.C, other.C])
+        print("Cnum3 = ", Cnum3)
+        Dnum3 = np.hstack([self.D, other.D])
+
+        x03 = np.vstack([x0.reshape(-1, 1), x0_other.reshape(-1, 1)])
+        print("x03 = ", x03)
+        
+        merged_dLPV = dLPV(Anum3, Cnum3, Bnum3,self.D)
+        obs_mat, obs_rank, Ao, Bo, Co, x0o = merged_dLPV.obs_reduction(x03)
+
+        S = obs_mat.T
+        T1 = S[:, :self.nx]
+        T2 = S[:, self.nx:]
+
+        try:
+            T = np.linalg.inv(T2) @ T1
+        except np.linalg.LinAlgError:
+            print("T is not inversible therefore the dLPVs are not isomorphic")
+            return False  
+
+        for i in range(self.np):
+            Ai1 = self.A[:, :, i]
+            Ai2 = other.A[:, :, i]
+            if np.linalg.norm(T @ Ai1 - Ai2 @ T) > tol:
+                return False
+
+            Bi1 = self.B[:, :, i]
+            Bi2 = other.B[:, :, i]
+            if np.linalg.norm(T @ Bi1 - Bi2) > tol:
+                return False
+
+        if np.linalg.norm(self.C - other.C @ T) > tol:
+            return False
+
+        if np.linalg.norm(T @ x0.reshape(-1, 1) - x0_other.reshape(-1, 1)) > tol:
+            return False
+
+        return True
+        
