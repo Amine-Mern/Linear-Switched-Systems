@@ -1,4 +1,4 @@
-from LPV import LPV
+from .LPV import LPV
 import numpy as np
 import math
 
@@ -76,7 +76,7 @@ class asLPV(LPV):
     def compute_vsp(self,v):
         """
         Computes the average outer product of global variable v.
-        UNTESTED
+        TESTED
         """
         Ntot = v.shape[1]
         ny = v.shape[0]
@@ -84,42 +84,44 @@ class asLPV(LPV):
         for i in range(Ntot):
             v_esp = v_esp + v[:,i] @ v[:,i].T
         v_esp /= Ntot
-        return v_esp
+        return v_esp[0][0]
 
-    def Compute_Qi(self,v,p):
+    def compute_Qi(self,v,p):
         """
         Compute the matrix Q_i = E[v(t) v(t)^T * mu_i(t)^2]
-        UNTESTED
+        TESTED
         """
         Q_true = np.zeros((self.ne, self.ne, self.np))
         Ntot = v.shape[1]
         for i in range(self.np):
-            for t in range(self.Ntot):
-                Q_true[:,:,i] = Q_true[:,:,i] + v[:,i].reshape(-1,1) @ v[:,i].reshape(1,-1) * (p[i,t]**2)
+            for t in range(Ntot):
+                Q_true[:,:,i] = Q_true[:,:,i] + v[:,t] @ v[:,t].T * (p[i,t]**2)
             Q_true[:,:,i] = Q_true[:,:,i]/Ntot
         return Q_true
         
-    def Compute_Pi(self):
+    def compute_Pi(self,psig,Q_true):
         """
         Computes the stationary covariance matrix P_i via iterative Lyapunov recursion.
-        UNFINISHED
+        
         """
         P_true_old = np.zeros((self.nx, self.nx, self.np))
         P_true_new = np.zeros((self.nx,self.nx,self.np))
         for i in range(self.np):
-            P_true_old[:,:,i] = zeros(self.nx,self.nx)
+            P_true_old[:,:,i] = np.zeros((self.nx,self.nx))
         
-        max_ = np.ones(np,1)
-        while max_ > 10**(-5) *  np.ones(self.np):
-            for sig in range(np):
-                P_true_new[:,:,sig] = zeros(self.nx,self.nx)
-                for sig1 in range(np):
-                    P_true_new[:,:,sig] = P_true_new[:,:,sig] + psig[sig,1] @ (A[:,:,sig1] @ P_true_old[:,:,sig1]@ A[:,:,sig1].reshape(-1,1) + k[:,:,sig1] @ Q_true[:,:,sig1] @ K[:,:,sig1].reshape(-1,1))
+        max_ = np.ones((self.np,1))
+        M_e = 1e-5 * np.ones(self.np)
+        while np.any(max_ > M_e):
+            for sig in range(self.np):
+                P_true_new[:,:,sig] = np.zeros((self.nx,self.nx))
+                for sig1 in range(self.np):
+                    P_true_new[:,:,sig] += psig[sig,0] * (self.A[:,:,sig1] @ P_true_old[:,:,sig1]@ self.A[:,:,sig1].T + self.K[:,:,sig1] @ Q_true[:,:,sig] @ self.K[:,:,sig1].T)
             for i in range(self.np):
-                max_[i] = norm(P_true_new[:,:,i] - P_true_old[:,:,i])/norm(P_true_old[:,:,sig1] @ A[:,:,sig1].T + K[:,:,sig1] @ Q_true[:,:,sig1] @ K[:,:,sig1].T)
+                max_[i] = np.linalg.norm(P_true_new[:, :, i] - P_true_old[:, :, i], ord=2) / (np.linalg.norm(P_true_old[:, :, i], ord=2) + 1)
+
             return P_true_new
     
-    def Computing_Gi(v,psig,p,Q_true,P_true_new):
+    def computing_Gi(v,psig,p,Q_true,P_true_new):
         """
         Computes the matrix G_i used in the innovation form of the LPV system.
         UNTESTED
