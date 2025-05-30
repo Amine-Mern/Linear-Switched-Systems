@@ -47,7 +47,7 @@ class asLPVTest(unittest.TestCase):
         expected = 1.836630022
         self.assertTrue(self.asLPV.compute_vsp(v_test) == expected)
     
-    def test_compute_Gi(self):
+    def test_compute_Qi(self):
         #v_test : the v used in this test to check if the calculations are correct (length is shorter that normal) Ntot = 10 in this specific case, can't test 2000 length vector))
         #This is used to avoid the randomness in the noise when we define it
         v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
