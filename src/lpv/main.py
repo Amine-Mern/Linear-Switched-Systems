@@ -205,6 +205,21 @@ def main():
         B2[:, :, i] = T @ B1[:, :, i]
     C2 = C1 @ T_inv
     D2 = D1.copy()
+    
+    for i in range(np_):
+        print(f"A1[:,:,{i}]:\n", A1[:, :, i])
+    for i in range(np_):
+        print(f"B1[:,:,{i}]:\n", B1[:, :, i])
+    print("C1 = ", C2)
+    print("D1 = ", D2)
+    
+    for i in range(np_):
+        print(f"A2[:,:,{i}]:\n", A2[:, :, i])
+    for i in range(np_):
+        print(f"B2[:,:,{i}]:\n", B2[:, :, i])
+    print("C2 = ", C2)
+    print("D2 = ", D2)
+    
 
     x0 = np.array([0.0, 0.0])
     x0_other = np.array([0.0, 0.0])
@@ -227,6 +242,58 @@ def main():
 
     result_non_iso = sys1.isIsomorphic(sys3, x0, x0_other3)
     print("Isomorphic (expected False):", result_non_iso)
+    
+    print("---------- TEST 7 : Recursion function ----------")
+
+    nx = 2
+    ny = 1
+    np_ = 2
+
+    # Define system matrices A, G, C for dLPV instance
+    A = np.zeros((nx, nx, np_))
+    G = np.zeros((nx, ny, np_))
+    C = np.array([[1.0, 0.0]])
+
+    # Fill A and G for two modes
+    A[:, :, 0] = np.array([[0.9, 0.1],
+                          [0.0, 0.8]])
+    A[:, :, 1] = np.array([[0.7, 0.2],
+                          [0.1, 0.6]])
+    G[:, :, 0] = np.array([[0.1],
+                          [0.0]])
+    G[:, :, 1] = np.array([[0.05],
+                          [0.02]])
+
+    # Noise covariance matrices for measurement noise T_sig (shape ny x ny x np)
+    T_sig = np.zeros((ny, ny, np_))
+    T_sig[:, :, 0] = np.array([[10.0]])
+    T_sig[:, :, 1] = np.array([[5.0]])
+
+    # Probability weights for each mode (np x 1)
+    psig = np.array([[0.6], [0.4]])
+
+    # Create instance of your dLPV class
+    sys = dLPV(A, C, None, None)
+    sys.G = G
+    sys.nx = nx
+    sys.ny = ny
+    sys.np = np_
+
+    # Run recursion
+    Pold, Qold, Kold = sys.Recursion(T_sig, psig)
+
+    print("Pold matrices:")
+    for i in range(np_):
+        print(f"Mode {i}:\n", Pold[:, :, i])
+
+    print("Qold matrices:")
+    for i in range(np_):
+        print(f"Mode {i}:\n", Qold[:, :, i])
+
+    print("Kold matrices:")
+    for i in range(np_):
+        print(f"Mode {i}:\n", Kold[:, :, i])
+
 
 if __name__ == "__main__":
     main()
