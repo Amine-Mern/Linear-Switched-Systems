@@ -402,3 +402,59 @@ class dLPV(LPV):
 
         return True
         
+        
+        
+    def Recursion(self, T_sig, psig):
+            """
+            Performs the LPV recursion to estimate the matrices P, Q, and K.
+
+            Parameters:
+                T_sig : ndarray [ny, ny, np]
+                    Measurement noise covariance matrices for each LPV mode.
+                psig : ndarray [np, 1]
+                    Probability weights for each mode.
+
+            Returns:
+                Pold : ndarray [nx, nx, np]
+                Qold : ndarray [ny, ny, np]
+                Kold : ndarray [nx, ny, np]
+            """
+            A = self.A
+            G = self.G
+            C = self.C
+
+            nx = self.nx
+            ny = self.ny
+            np_ = self.np
+
+            Pold = np.zeros((nx, nx, np_))
+            Qold = np.zeros((ny, ny, np_))
+            Kold = np.zeros((nx, ny, np_))
+            max_err = np.ones(np_)
+
+            while np.any(max_err > 1e-8):
+
+                for sig in range(np_):
+                    Qold[:, :, sig] = psig[sig, 0] * T_sig[:, :, sig] - C @ Pold[:, :, sig] @ C.T
+                    
+                    invQ = np.linalg.inv(Qold[:, :, sig])
+                    sqrt_psig = np.sqrt(psig[sig, 0])
+                    inv_sqrt_psig = 1.0 / sqrt_psig
+                    Kold[:, :, sig] = (sqrt_psig * G[:, :, sig] -
+                                       inv_sqrt_psig * A[:, :, sig] @ Pold[:, :, sig] @ C.T) @ invQ
+                    Pnew = np.zeros_like(Pold)
+                for sig in range(np_):
+                    for sig1 in range(np_):
+                        term1 = (1 / psig[sig1, 0]) * A[:, :, sig1] @ Pold[:, :, sig1] @ A[:, :, sig1].T
+                        term2 = Kold[:, :, sig1] @ Qold[:, :, sig1] @ Kold[:, :, sig1].T
+                        Pnew[:, :, sig] += psig[sig, 0] * (term1 + term2)
+
+                for i in range(np_):
+                    num = np.linalg.norm(Pnew[:, :, i] - Pold[:, :, i])
+                    den = np.linalg.norm(Pold[:, :, i]) + 0.1
+                    max_err[i] = num / den
+
+                Pold = np.copy(Pnew)
+
+            return Pold, Qold, Kold
+
