@@ -1,4 +1,5 @@
 from LPV import LPV
+from asLPV import asLPV 
 import numpy as np
 from scipy.linalg import orth
 
@@ -458,3 +459,28 @@ class dLPV(LPV):
 
             return Pold, Qold, Kold
 
+    def convert_to_asLPV(self, T_sig, psig):
+        """
+        Converts the current dLPV system to an asLPV system using stochastic recursion.
+
+        Parameters:
+            T_sig : ndarray [ny, ny, np]
+                Measurement noise covariance matrices for each mode.
+            psig : ndarray [np, 1]
+                Probability weights for each mode.
+
+        Returns:
+            as_system : asLPV
+                Instance of asLPV class with updated A, K, C, F.
+            Qmin : ndarray [ny, ny, np]
+                Output noise covariance matrices computed from recursion.
+        """
+        Pmin, Qmin, Kmin = self.Recursion(T_sig, psig)
+        Amin = np.zeros_like(self.A)
+        for i in range(self.np):
+            Amin[:, :, i] = (1.0 / np.sqrt(psig[i, 0])) * self.A[:, :, i]
+
+        F = np.eye(self.ny)
+        as_system = asLPV(Amin, self.C, Kmin, F)
+
+        return as_system, Qmin
