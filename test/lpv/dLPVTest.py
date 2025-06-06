@@ -31,3 +31,20 @@ class dLPVTest(unittest.TestCase):
         expected_x1 = np.array([1.5, 1.0])
         np.testing.assert_array_almost_equal(x[:,1], expected_x1, decimal=6)
         
+    def test_reach_reduction(self):
+        x0 = np.array([1.0, 0.0])
+        Reach_mat, r, Ar, Br, Cr, x0r = self.sys.reach_reduction(x0)
+        
+        self.assertEqual(Reach_mat.shape[0], 2)
+        self.assertEqual(Reach_mat.shape[1], r)
+        
+        ortho_test = Reach_mat.T @ Reach_mat
+        np.testing.assert_array_almost_equal(ortho_test, np.eye(r), decimal=6,
+                  err_msg="The columns of Reach_mat are not orthonormal")
+        
+        self.assertEqual(Ar.shape, (r, r, 2), "Ar shape incorrect")
+        self.assertEqual(Br.shape, (r, 1, 2), "Br shape incorrect")
+        self.assertEqual(Cr.shape, (1, r), "Cr shape incorrect")
+        self.assertEqual(x0r.shape, (r, 1), "x0r shape incorrect")
+        
+        self.assertLessEqual(r, 2)
