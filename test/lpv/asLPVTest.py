@@ -61,7 +61,7 @@ class asLPVTest(unittest.TestCase):
         
         #Values obtained from compiling the working Matlab code 
        
-       expected1 = 1.83663002
+        expected1 = 1.83663002
         expected2HigherBound = 2.1872
         expected2LowerBound = 2.1869
         

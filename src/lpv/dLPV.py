@@ -1,5 +1,5 @@
-from LPV import LPV
-from asLPV import asLPV 
+from .LPV import LPV
+from .asLPV import asLPV 
 import numpy as np
 from scipy.linalg import orth
 
@@ -51,15 +51,13 @@ class dLPV(LPV):
     def __init__(self, A, C, B, D):
         super().__init__(A, C, B, D, K=None, F=None)
         
-    def simulate_y(self, u, v, p, Ntot):
+    def simulate_y(self, u, p, Ntot):
         """
         Simulate the dLPV system output
         
         Parameters:
             - u : ndarray
                   Input array
-            - v : ndarray
-                  Noise array, can be None if no noise
             - p : ndarray
                   Scheduling
             - Ntot : int
@@ -421,7 +419,7 @@ class dLPV(LPV):
                 Kold : ndarray [nx, ny, np]
             """
             A = self.A
-            G = self.G
+            B = self.B
             C = self.C
 
             nx = self.nx
@@ -441,7 +439,7 @@ class dLPV(LPV):
                     invQ = np.linalg.inv(Qold[:, :, sig])
                     sqrt_psig = np.sqrt(psig[sig, 0])
                     inv_sqrt_psig = 1.0 / sqrt_psig
-                    Kold[:, :, sig] = (sqrt_psig * G[:, :, sig] -
+                    Kold[:, :, sig] = (sqrt_psig * B[:, :, sig] -
                                        inv_sqrt_psig * A[:, :, sig] @ Pold[:, :, sig] @ C.T) @ invQ
                     Pnew = np.zeros_like(Pold)
                 for sig in range(np_):

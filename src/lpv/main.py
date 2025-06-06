@@ -251,7 +251,7 @@ def main():
 
     # Define system matrices A, G, C for dLPV instance
     A = np.zeros((nx, nx, np_))
-    G = np.zeros((nx, ny, np_))
+    B = np.zeros((nx, ny, np_))
     C = np.array([[1.0, 0.0]])
 
     # Fill A and G for two modes
@@ -259,9 +259,9 @@ def main():
                           [0.0, 0.8]])
     A[:, :, 1] = np.array([[0.7, 0.2],
                           [0.1, 0.6]])
-    G[:, :, 0] = np.array([[0.1],
+    B[:, :, 0] = np.array([[0.1],
                           [0.0]])
-    G[:, :, 1] = np.array([[0.05],
+    B[:, :, 1] = np.array([[0.05],
                           [0.02]])
 
     # Noise covariance matrices for measurement noise T_sig (shape ny x ny x np)
@@ -273,8 +273,7 @@ def main():
     psig = np.array([[0.6], [0.4]])
 
     # Create instance of your dLPV class
-    sys = dLPV(A, C, None, None)
-    sys.G = G
+    sys = dLPV(A, C, B, None)
     sys.nx = nx
     sys.ny = ny
     sys.np = np_
@@ -293,7 +292,29 @@ def main():
     print("Kold matrices:")
     for i in range(np_):
         print(f"Mode {i}:\n", Kold[:, :, i])
-
+        
+    print("---------- TEST 7 : Recursion function ----------")
+    
+    A1 = np.zeros((2, 2, 2))
+    B1 = np.zeros((2, 1, 2))
+    C1 = np.array([[1.0, 0.0]])
+    D1 = np.array([[0.0]])
+    A1[:, :, 0] = np.array([[0.8, 0.1],
+                            [0.0, 0.5]])
+    A1[:, :, 1] = np.array([[0.5, 0.2],
+                            [0.1, 0.6]])
+    B1[:, :, 0] = np.array([[1.0],
+                            [0.0]])
+    B1[:, :, 1] = np.array([[0.5],
+                           [1.0]])
+    Ntot = 10
+    u = np.ones((1, Ntot))
+    p = np.ones((2, Ntot))
+    sys = dLPV(A, C, B, D)
+    y, yif, x = sys.simulate_y(u, p, Ntot)
+    print("y =" , y)
+    print("yif =" , yif)
+    print("x =" , x)
 
 if __name__ == "__main__":
     main()
