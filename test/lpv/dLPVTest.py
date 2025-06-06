@@ -48,3 +48,20 @@ class dLPVTest(unittest.TestCase):
         self.assertEqual(x0r.shape, (r, 1), "x0r shape incorrect")
         
         self.assertLessEqual(r, 2)
+        
+        
+    def test_observability_reduction(self):
+        x0 = np.array([0.0, 0.0])
+        Obs_mat, r, Ao, Bo, Co, x0o = self.sys.obs_reduction(x0)
+        
+        ortho_test = Obs_mat.T @ Obs_mat
+        np.testing.assert_array_almost_equal(ortho_test, np.eye(r), decimal=6,
+              err_msg="The columns of Obs_mat are not orthonormal")
+        
+        self.assertEqual(Ao.shape, (r, r, 2), "Ao shape incorrect")
+        self.assertEqual(Bo.shape, (r, 1, 2), "Bo shape incorrect")
+        self.assertEqual(Co.shape, (1, r), "Co shape incorrect")
+        self.assertEqual(x0o.shape, (r, 1), "x0o shape incorrect")
+        
+        self.assertLessEqual(r, 2)
+        
