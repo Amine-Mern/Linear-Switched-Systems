@@ -75,14 +75,34 @@ class asLPVTest(unittest.TestCase):
          #v_test : the v used in this test to check if the calculations are correct (length is shorter that normal) Ntot = 10 in this specific case, can't test 2000 length vector))
         #This is used to avoid the randomness in the noise when we define it
         v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
-        
         #Randomness is used to defined p, so we define one for this test
+
         p_test = np.array([
-    [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
-    [0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
+[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+[0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
 ])
+        Qi = self.asLPV.compute_Qi(v_test,p_test)
+
+        psig_test = np.array([[1.0000],
+        [0.7625]])
         
+        Pi = self.asLPV.compute_Pi(psig_test,Qi)
         
+        #Creating the expected Matrix showed in MATLAB :
+        #Expected 3D Matrix
+        #______________ Back Side______
+        # Front side          | 0.8352 , 0.3517      
+        # 1.0953 , 0.4612 | 0.3517 , 3.4438
+        # 0.4612 , 4.5167 |--------------------
+        
+        Expected = np.zeros((2,2,2))
+        Expected[:,:,0] = np.array([[1.0953,0.4612],[0.8352,0.3517]])
+        Expected[:,:,1] = np.array([[0.4612,4.5167],[0.3517,3.4438]])
+        
+        #Round to 4 
+        Expected_rounded = np.round(Expected,4)
+
+        self.assertTrue(np.allclose(Pi,Expected,rtol = 1e-4, atol = 1e-6))
 
 if __name__ == '__main__':
     unittest.main()

@@ -97,12 +97,13 @@ class asLPV(LPV):
             for t in range(Ntot):
                 Q_true[:,:,i] = Q_true[:,:,i] + v[:,t] @ v[:,t].T * (p[i,t]**2)
             Q_true[:,:,i] = Q_true[:,:,i]/Ntot
+        
         return Q_true
         
     def compute_Pi(self,psig,Q_true):
         """
         Computes the stationary covariance matrix P_i via iterative Lyapunov recursion.
-        
+        TESTED
         """
         P_true_old = np.zeros((self.nx, self.nx, self.np))
         P_true_new = np.zeros((self.nx,self.nx,self.np))
@@ -115,11 +116,17 @@ class asLPV(LPV):
             for sig in range(self.np):
                 P_true_new[:,:,sig] = np.zeros((self.nx,self.nx))
                 for sig1 in range(self.np):
-                    P_true_new[:,:,sig] += psig[sig,0] * (self.A[:,:,sig1] @ P_true_old[:,:,sig1]@ self.A[:,:,sig1].T + self.K[:,:,sig1] @ Q_true[:,:,sig] @ self.K[:,:,sig1].T)
+                    P_true_new[:,:,sig] += psig[sig,0] * (self.A[:,:,sig1] @ P_true_old[:,:,sig1]@ self.A[:,:,sig1].T + self.K[:,:,sig1] @ Q_true[:,:,sig1] @ self.K[:,:,sig1].T)
             for i in range(self.np):
                 max_[i] = np.linalg.norm(P_true_new[:, :, i] - P_true_old[:, :, i], ord=2) / (np.linalg.norm(P_true_old[:, :, i], ord=2) + 1)
-
-            return P_true_new
+            
+            P_true_old = P_true_new.copy()
+            
+        ## Putting it in the same MATLAB Shape :
+        P_true_new_well_shaped = P_true_new.transpose(2,0,1)
+        P_rounded = np.round(P_true_new_well_shaped,4)
+        
+        return P_rounded
     
     def computing_Gi(v,psig,p,Q_true,P_true_new):
         """
