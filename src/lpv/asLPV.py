@@ -125,19 +125,21 @@ class asLPV(LPV):
         
         ## It's normal that's it's not the same display as in MATLAB because of numpy but works the same in memory.
         
-        P_rounded = np.round(P_true_new,4)
+        P_true_new_rounded = np.round(P_true_new,4)
         
-        return P_rounded
+        return P_true_new_rounded
     
-    def compute_Gi(v,psig,p,Q_true,P_true_new):
+    def compute_Gi(self,v,psig,p,Q_true,P_true_new):
         """
         Computes the matrix G_i used in the innovation form of the LPV system.
         UNTESTED
         """
-        G_true = np.zeros((nx, ny, np_))
-        for i in range(np):
-            G_true[:,:,i] = (1/math.sqrt(psig[i,0])) @ (self.A[:,:,i] @ P_true_new[:,:,i] @ self.C.T + K[:,:,i] @ Q_true[:,:,i] @ F.T)
-        return G_true
+        G_true = np.zeros((self.nx, self.ny, self.np))
+        for i in range(self.np):
+            G_true[:,:,i] = (1/math.sqrt(psig[i,0])) * (self.A[:,:,i] @ P_true_new[:,:,i] @ self.C.T + self.K[:,:,i] @ Q_true[:,:,i] @ self.F.T)
+        
+        G_true_rounded = np.round(G_true,4)
+        return G_true_rounded
     
     def convertToDLPV():
         """

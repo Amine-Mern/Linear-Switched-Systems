@@ -103,15 +103,34 @@ class asLPVTest(unittest.TestCase):
 
         self.assertTrue(np.allclose(Pi,Expected,rtol = 1e-4, atol = 1e-6))
 
-#     def test_compute_Gi(self):
-#         v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
-#         #Randomness is used to defined p, so we define one for this test
-# 
-#         p_test = np.array([
-# [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
-# [0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
-# ])
-#         
+    def test_compute_Gi(self):
+        v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
+        #Randomness is used to defined p, so we define one for this test
+
+        p_test = np.array([
+[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+[0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
+])
+        psig_test = np.array([[1.0000],
+        [0.7625]])
+        
+        ##Compute_Qi
+        Qi = self.asLPV.compute_Qi(v_test,p_test)
+        
+        ##Compute_Pi
+        Pi = self.asLPV.compute_Pi(psig_test,Qi)
+        
+        ##Compute_Gi
+        Gi = self.asLPV.compute_Gi(v_test,psig_test,p_test,Qi,Pi)
+        
+        ## Expected :
+        Expected = np.zeros((2, 1, 2)) 
+        Expected[:, :, 0] = np.array([[0.6226],
+                               [2.1018]])
+        Expected[:, :, 1] = np.array([[0.1359],
+                               [2.8169]])
+        
+        self.assertTrue(np.allclose(Gi,Expected,rtol = 1e-4, atol = 1e-6))
         
 
 if __name__ == '__main__':
