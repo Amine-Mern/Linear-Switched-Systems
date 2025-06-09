@@ -59,6 +59,7 @@ class asLPV(LPV):
         Innovation Form
         
         Returns : Boolean
+        TESTED
         """
         M = np.zeros((self.nx**2,self.nx**2))
         for i in range(1,self.np):
@@ -121,21 +122,21 @@ class asLPV(LPV):
                 max_[i] = np.linalg.norm(P_true_new[:, :, i] - P_true_old[:, :, i], ord=2) / (np.linalg.norm(P_true_old[:, :, i], ord=2) + 1)
             
             P_true_old = P_true_new.copy()
-            
-        ## Putting it in the same MATLAB Shape :
-        P_true_new_well_shaped = P_true_new.transpose(2,0,1)
-        P_rounded = np.round(P_true_new_well_shaped,4)
+        
+        ## It's normal that's it's not the same display as in MATLAB because of numpy but works the same in memory.
+        
+        P_rounded = np.round(P_true_new,4)
         
         return P_rounded
     
-    def computing_Gi(v,psig,p,Q_true,P_true_new):
+    def compute_Gi(v,psig,p,Q_true,P_true_new):
         """
         Computes the matrix G_i used in the innovation form of the LPV system.
         UNTESTED
         """
         G_true = np.zeros((nx, ny, np_))
         for i in range(np):
-            G_true[:,:,i] = (1/math.sqrt(psig[i,1])) @ (self.A[:,:,i] @ P_true_new[:,:,i] @ self.C.T + K[:,:,i] @ Q_true[:,:,i] @ F.T)
+            G_true[:,:,i] = (1/math.sqrt(psig[i,0])) @ (self.A[:,:,i] @ P_true_new[:,:,i] @ self.C.T + K[:,:,i] @ Q_true[:,:,i] @ F.T)
         return G_true
     
     def convertToDLPV():

@@ -96,13 +96,23 @@ class asLPVTest(unittest.TestCase):
         # 0.4612 , 4.5167 |--------------------
         
         Expected = np.zeros((2,2,2))
-        Expected[:,:,0] = np.array([[1.0953,0.4612],[0.8352,0.3517]])
-        Expected[:,:,1] = np.array([[0.4612,4.5167],[0.3517,3.4438]])
+        Expected[:,:,0] = np.array([[1.0953,0.4612],[0.4612,4.5167]])
+        Expected[:,:,1] = np.array([[0.8352,0.3517],[0.3517,3.4438]])
         
-        #Round to 4 
         Expected_rounded = np.round(Expected,4)
 
         self.assertTrue(np.allclose(Pi,Expected,rtol = 1e-4, atol = 1e-6))
+
+#     def test_compute_Gi(self):
+#         v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
+#         #Randomness is used to defined p, so we define one for this test
+# 
+#         p_test = np.array([
+# [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+# [0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
+# ])
+#         
+        
 
 if __name__ == '__main__':
     unittest.main()
