@@ -65,3 +65,21 @@ class dLPVTest(unittest.TestCase):
         
         self.assertLessEqual(r, 2)
         
+        
+    def test_minimal_realization(self):
+        x0 = np.array([1.0, 0.0])
+        minimal_sys, x0m = self.sys.minimize(x0)
+            
+        r = minimal_sys.A.shape[0]
+        self.assertIsInstance(minimal_sys, dLPV)
+        self.assertEqual(minimal_sys.A.shape, (r, r, self.sys.np), "A shape is incorrect")
+        self.assertEqual(minimal_sys.B.shape, (r, self.sys.nu, self.sys.np), "B shape is incorrect")
+        self.assertEqual(minimal_sys.C.shape, (self.sys.ny, r), "C shape is incorrect")
+        self.assertEqual(minimal_sys.D.shape, (self.sys.ny, self.sys.nu), "D shape is incorrect")
+        self.assertEqual(x0m.shape, (r, 1), "x0 shape is incorrect")
+        self.assertLessEqual(r, self.sys.nx)
+        
+    
+    
+
+        
