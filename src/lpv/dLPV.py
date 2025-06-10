@@ -281,7 +281,6 @@ class dLPV(LPV):
         Bnum3 = np.zeros((2 * self.nx, self.nu, self.np))
         
         
-        # Create merged system (combined observability test)
         for i in range(self.np):
             Anum3[:, :, i] = np.block([
                 [self.A[:, :, i], np.zeros((self.nx, self.nx))],
@@ -361,7 +360,6 @@ class dLPV(LPV):
             Qold = np.zeros((ny, ny, np_))
             Kold = np.zeros((nx, ny, np_))
             max_err = np.ones(np_)
-
             while np.any(max_err > 1e-8):
 
                 for sig in range(np_):

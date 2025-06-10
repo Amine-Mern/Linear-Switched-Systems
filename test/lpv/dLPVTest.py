@@ -79,7 +79,64 @@ class dLPVTest(unittest.TestCase):
         self.assertEqual(x0m.shape, (r, 1), "x0 shape is incorrect")
         self.assertLessEqual(r, self.sys.nx)
         
-    
-    
-
+    def test_isomorphic_systems(self):
+        A2 = np.zeros((2,2,2))
+        B2 = np.zeros((2,1,2))
+        C2 = np.zeros((1,2))
+        D2 = np.zeros((1,1))
         
+        T = np.array([[1,2], [0,1]])
+        T_inv = np.linalg.inv(T)
+        for i in range(2):
+            A2[:,:,i] = T @ self.sys.A[:,:,i] @ T_inv
+            B2[:,:,i] = T @ self.sys.B[:,:,i]
+        C2 = self.sys.C @ T_inv
+        D2 = self.sys.D
+        sys2 = dLPV (A2, C2, B2, D2)
+        x0 = np.array([0.0, 0.0])
+        x02 = np.array([0.0, 0.0])
+        self.assertTrue(self.sys.isIsomorphic(sys2, x0,x02))
+        
+    def test_non_isomorphic_systems(self):
+        A2 = np.zeros((2,2,2))
+        B2 = np.zeros((2,1,2))
+        C2 = np.zeros((1,2))
+        D2 = np.zeros((1,1))
+        sys2 = dLPV (A2, C2, B2, D2)
+        x0 = np.array([0.0, 0.0])
+        x02 = np.array([0.0, 0.0])
+        self.assertFalse(self.sys.isIsomorphic(sys2, x0,x02))
+        
+    def test_recursion(self):
+        nx = 2
+        ny = 1
+        np_ = 2
+
+        A = np.zeros((nx, nx, np_))
+        B = np.zeros((nx, ny, np_))
+        C = np.array([[1.0, 0.0]])
+
+        A[:, :, 0] = np.array([[0.9, 0.1],
+                              [0.0, 0.8]])
+        A[:, :, 1] = np.array([[0.7, 0.2],
+                              [0.1, 0.6]])
+        B[:, :, 0] = np.array([[0.1],
+                              [0.0]])
+        B[:, :, 1] = np.array([[0.05],
+                              [0.02]])
+        T_sig = np.zeros((ny, ny, np_))
+        T_sig[:, :, 0] = np.array([[10.0]])
+        T_sig[:, :, 1] = np.array([[5.0]])
+
+        psig = np.array([[0.6], [0.4]])
+
+        sys = dLPV(A, C, B, None)
+        sys.nx = nx
+        sys.ny = ny
+        sys.np = np_
+
+        P, Q, K = sys.Recursion(T_sig, psig)
+        
+        self.assertEqual(P.shape, (self.sys.nx, self.sys.nx, self.sys.np))
+        self.assertEqual(Q.shape, (self.sys.ny, self.sys.ny, self.sys.np))
+        self.assertEqual(K.shape, (self.sys.nx, self.sys.ny, self.sys.np))
