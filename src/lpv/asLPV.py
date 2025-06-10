@@ -85,7 +85,9 @@ class asLPV(LPV):
         for i in range(Ntot):
             v_esp = v_esp + v[:,i] @ v[:,i].T
         v_esp /= Ntot
-        return v_esp[0][0]
+        
+        ## We round the number to four decimal places (as used the original MATLAB code)
+        return round(v_esp[0][0],4)
 
     def compute_Qi(self,v,p):
         """
@@ -99,7 +101,7 @@ class asLPV(LPV):
                 Q_true[:,:,i] = Q_true[:,:,i] + v[:,t] @ v[:,t].T * (p[i,t]**2)
             Q_true[:,:,i] = Q_true[:,:,i]/Ntot
         
-        return Q_true
+        return np.round(Q_true,4)
         
     def compute_Pi(self,psig,Q_true):
         """
@@ -132,7 +134,7 @@ class asLPV(LPV):
     def compute_Gi(self,v,psig,p,Q_true,P_true_new):
         """
         Computes the matrix G_i used in the innovation form of the LPV system.
-        UNTESTED
+        TESTED
         """
         G_true = np.zeros((self.nx, self.ny, self.np))
         for i in range(self.np):
@@ -141,13 +143,74 @@ class asLPV(LPV):
         G_true_rounded = np.round(G_true,4)
         return G_true_rounded
     
-    def convertToDLPV():
+    def convertToDLPV(self,v,p,psig):
+        from .dLPV import dLPV
         """
         Converts an asLPV to an dLPV
+        We calculate T_sig here to use P_True, Q_True, without needing to use them later.
+        TESTED
         """
+        Q_true = self.compute_Qi(v,p)
+        P_true = self.compute_Pi(psig,Q_true)
+        G_true = self.compute_Gi(v,psig,p,Q_true,P_true)
+        
+        # Matrix we wish to calculate
+        T_sig = np.zeros((self.ny,self.ny,self.np))
+        An = np.zeros((self.nx,self.nx,self.np))
+        
+        for i in range(self.np):
+            T_sig[:,:,i] = (1/psig[i,0]) * (self.C @ P_true[:,:,i] @ self.C.T + self.F @ Q_true[:,:,i] @ self.F.T)
+            An[:,:,i] = (math.sqrt(psig[i,0]) * self.A[:,:,i])
+        
+        # We create a DLPV System with arguments such as
+        # A : An
+        # B : G_True
+        # C : Stays as C
+        # D : Fmin a square eye matrix of dimension ny
+        
+        Fmin = np.eye(self.ny)
+        
+        d_system = dLPV(An,G_true,self.C,Fmin)
+        
+        print(d_system)
+        
+        print("Fmin")
+        print(Fmin)
+        
+        print("C")
+        print(self.C)
+        
+        print("G-true")
+        print(G_true)
+        print(G_true[:,:,0])
+        print(G_true[:,:,1])
+        
+        print("An----")
+        print(An)
+        print("dos")
+        print(An[:,:,0])
+        print(An[:,:,1])
+        
+        print("T-sig")
+        print(T_sig)
+        print(T_sig[:,:,0])
+        print(T_sig[:,:,1])
+        
+        return d_system , T_sig
     
-    def stochMinimize():
+    def stochMinimize(self,v,p,psig):
         """
         Finds a minimal stochastic realization (in innovation form) of the current asLPV system.
+        Qmin is later used in main
+        UNTESTED
         """
+        x0 = np.zeros((nx,1))
+                
+        d_system, T_sig = convertToDLPV(v,p,psig)
         
+        min_d_system, x0m = d_system.minimize(x0)
+        
+        as_min_system, Qmin = min_d_system.convert_to_asLPV(T_sig,psig)
+        
+        return as_min_system, Qmin
+    

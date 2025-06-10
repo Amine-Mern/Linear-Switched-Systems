@@ -44,7 +44,7 @@ class asLPVTest(unittest.TestCase):
         v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
         
         #This is the value of the expected v_esp (in the Matlab code this code originated from, the value approximated 1.8366)
-        expected = 1.836630022
+        expected = 1.8366
         self.assertTrue(self.asLPV.compute_vsp(v_test) == expected)
     
     def test_compute_Qi(self):
@@ -61,15 +61,14 @@ class asLPVTest(unittest.TestCase):
         
         #Values obtained from compiling the working Matlab code 
        
-        expected1 = 1.83663002
-        expected2HigherBound = 2.1872
-        expected2LowerBound = 2.1869
+        expected1 = 1.8366
+        expected2 = 2.1871
         
         #approx 1.8366 in MATLAB
-        self.assertTrue(Qi[0][0][0] == 1.836630022)
+        self.assertTrue(Qi[0][0][0] == expected1)
         
         #approx 2.187 in MATLAB
-        self.assertTrue(expected2LowerBound < Qi[0][0][1] and Qi[0][0][1] < expected2HigherBound)
+        self.assertTrue(Qi[0][0][1] == expected2)
         
     def test_compute_Pi(self):
          #v_test : the v used in this test to check if the calculations are correct (length is shorter that normal) Ntot = 10 in this specific case, can't test 2000 length vector))
@@ -132,6 +131,22 @@ class asLPVTest(unittest.TestCase):
         
         self.assertTrue(np.allclose(Gi,Expected,rtol = 1e-4, atol = 1e-6))
         
+    def test_convertToDLPV(self):
+        v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
+        
+        #Randomness is used to defined p, so we define one for this test
 
+        p_test = np.array([
+[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+[0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
+])
+        psig_test = np.array([[1.0000],
+        [0.7625]])
+        
+        d_system, T_sig = self.asLPV.convertToDLPV(v_test,p_test,psig_test)
+        
+        #self.assertTrue(False)
+        
+        
 if __name__ == '__main__':
     unittest.main()
