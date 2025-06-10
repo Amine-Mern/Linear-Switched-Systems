@@ -103,6 +103,7 @@ class asLPVTest(unittest.TestCase):
         self.assertTrue(np.allclose(Pi,Expected,rtol = 1e-4, atol = 1e-6))
 
     def test_compute_Gi(self):
+        #This is used to avoid the randomness in the noise when we define it
         v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
         #Randomness is used to defined p, so we define one for this test
 
@@ -120,7 +121,7 @@ class asLPVTest(unittest.TestCase):
         Pi = self.asLPV.compute_Pi(psig_test,Qi)
         
         ##Compute_Gi
-        Gi = self.asLPV.compute_Gi(v_test,psig_test,p_test,Qi,Pi)
+        Gi = self.asLPV.compute_Gi(psig_test,p_test,Qi,Pi)
         
         ## Expected :
         Expected = np.zeros((2, 1, 2)) 
