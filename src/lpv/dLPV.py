@@ -1,5 +1,4 @@
 from .LPV import LPV
-from .asLPV import asLPV 
 import numpy as np
 from scipy.linalg import orth
 
@@ -387,6 +386,7 @@ class dLPV(LPV):
             return Pold, Qold, Kold
 
     def convert_to_asLPV(self, T_sig, psig):
+        from .asLPV import asLPV 
         """
         Converts the current dLPV system to an asLPV system using stochastic recursion.
 

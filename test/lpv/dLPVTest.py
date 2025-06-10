@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 from src.lpv.dLPV import dLPV
+from src.lpv.asLPV import asLPV
 
 class dLPVTest(unittest.TestCase):
     def setUp(self):
@@ -111,7 +112,6 @@ class dLPVTest(unittest.TestCase):
         nx = 2
         ny = 1
         np_ = 2
-
         A = np.zeros((nx, nx, np_))
         B = np.zeros((nx, ny, np_))
         C = np.array([[1.0, 0.0]])
@@ -140,3 +140,39 @@ class dLPVTest(unittest.TestCase):
         self.assertEqual(P.shape, (self.sys.nx, self.sys.nx, self.sys.np))
         self.assertEqual(Q.shape, (self.sys.ny, self.sys.ny, self.sys.np))
         self.assertEqual(K.shape, (self.sys.nx, self.sys.ny, self.sys.np))
+        
+    def test_convert_to_asLPV(self):
+        nx = 2
+        ny = 1
+        np_ = 2
+        A = np.zeros((nx, nx, np_))
+        B = np.zeros((nx, ny, np_))
+        C = np.array([[1.0, 0.0]])
+
+        A[:, :, 0] = np.array([[0.9, 0.1],
+                              [0.0, 0.8]])
+        A[:, :, 1] = np.array([[0.7, 0.2],
+                              [0.1, 0.6]])
+        B[:, :, 0] = np.array([[0.1],
+                              [0.0]])
+        B[:, :, 1] = np.array([[0.05],
+                              [0.02]])
+        T_sig = np.zeros((ny, ny, np_))
+        T_sig[:, :, 0] = np.array([[10.0]])
+        T_sig[:, :, 1] = np.array([[5.0]])
+
+        psig = np.array([[0.6], [0.4]])
+
+        self.sys = dLPV(A, C, B, None)
+        self.sys.nx = nx
+        self.sys.ny = ny
+        self.sys.np = np_
+        as_sys, Qmin = self.sys.convert_to_asLPV(T_sig, psig)
+
+        self.assertTrue(isinstance(as_sys, asLPV), "Returned system is not an instance of asLPV")
+        self.assertEqual(Qmin.shape, (self.sys.ny, self.sys.ny, self.sys.np), "Qmin shape incorrect")
+        self.assertEqual(as_sys.A.shape, self.sys.A.shape, "A shape mismatch")
+        self.assertEqual(as_sys.K.shape, (self.sys.nx, self.sys.ny, self.sys.np), "K shape mismatch")
+        self.assertEqual(as_sys.C.shape, self.sys.C.shape, "C shape mismatch")
+        self.assertEqual(as_sys.F.shape, (self.sys.ny, self.sys.ny), "F shape mismatch")
+
