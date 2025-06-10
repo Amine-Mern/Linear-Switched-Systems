@@ -170,7 +170,7 @@ class asLPV(LPV):
         
         Fmin = np.eye(self.ny)
         
-        d_system = dLPV(An,G_true,self.C,Fmin)
+        d_system = dLPV(An,self.C,G_true,Fmin)
         
         print(d_system)
         
@@ -204,13 +204,44 @@ class asLPV(LPV):
         Qmin is later used in main
         UNTESTED
         """
-        x0 = np.zeros((nx,1))
+        x0 = np.zeros((self.nx,1))
                 
-        d_system, T_sig = convertToDLPV(v,p,psig)
+        d_system, T_sig = self.convertToDLPV(v,p,psig)
+        print("--------------------")
+        print(d_system.B)
         
         min_d_system, x0m = d_system.minimize(x0)
         
+        print("d-min_system part")
+        
+        print("x0m")
+        print(x0m)
+        
+        print("-----")
+        print(min_d_system.A)
+        print("-----")
+        print(min_d_system.B)
+        print("-----")
+        print(min_d_system.C)
+        print("-----")
+        print(min_d_system.D)
+        
         as_min_system, Qmin = min_d_system.convert_to_asLPV(T_sig,psig)
+        
+        print("as_min_system--PART--")
+        
+        print("-----")
+        print(as_min_system.A[:,:,0])
+        print(as_min_system.A[:,:,1])
+        print("-----")
+        print(as_min_system.C)
+        print("-----")
+        print(as_min_system.K)
+        print("-----")
+        print(as_min_system.F)
+        
+        print("Qmin")
+        print(Qmin)
         
         return as_min_system, Qmin
     

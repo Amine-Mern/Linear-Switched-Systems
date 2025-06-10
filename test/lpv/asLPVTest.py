@@ -147,6 +147,21 @@ class asLPVTest(unittest.TestCase):
         
         #self.assertTrue(False)
         
+    def test_stochminimize(self):
+        v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
+        
+        #Randomness is used to defined p, so we define one for this test
+
+        p_test = np.array([
+[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+[0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
+])
+        psig_test = np.array([[1.0000],
+        [0.7625]])
+        
+        as_min_system = self.asLPV.stochMinimize(v_test,p_test,psig_test)
+        
+        
         
 if __name__ == '__main__':
     unittest.main()
