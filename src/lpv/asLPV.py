@@ -170,31 +170,11 @@ class asLPV(LPV):
         
         Fmin = np.eye(self.ny)
         
+        #We round the two matrices that are not rounded to 4 decimal point
+        T_sig = np.round(T_sig,4)
+        An = np.round(An,4)
+        
         d_system = dLPV(An,self.C,G_true,Fmin)
-        
-        print(d_system)
-        
-        print("Fmin")
-        print(Fmin)
-        
-        print("C")
-        print(self.C)
-        
-        print("G-true")
-        print(G_true)
-        print(G_true[:,:,0])
-        print(G_true[:,:,1])
-        
-        print("An----")
-        print(An)
-        print("dos")
-        print(An[:,:,0])
-        print(An[:,:,1])
-        
-        print("T-sig")
-        print(T_sig)
-        print(T_sig[:,:,0])
-        print(T_sig[:,:,1])
         
         return d_system , T_sig
     
@@ -202,46 +182,15 @@ class asLPV(LPV):
         """
         Finds a minimal stochastic realization (in innovation form) of the current asLPV system.
         Qmin is later used in main
-        UNTESTED
+        TESTED
         """
         x0 = np.zeros((self.nx,1))
                 
         d_system, T_sig = self.convertToDLPV(v,p,psig)
-        print("--------------------")
-        print(d_system.B)
         
         min_d_system, x0m = d_system.minimize(x0)
         
-        print("d-min_system part")
-        
-        print("x0m")
-        print(x0m)
-        
-        print("-----")
-        print(min_d_system.A)
-        print("-----")
-        print(min_d_system.B)
-        print("-----")
-        print(min_d_system.C)
-        print("-----")
-        print(min_d_system.D)
-        
         as_min_system, Qmin = min_d_system.convert_to_asLPV(T_sig,psig)
-        
-        print("as_min_system--PART--")
-        
-        print("-----")
-        print(as_min_system.A[:,:,0])
-        print(as_min_system.A[:,:,1])
-        print("-----")
-        print(as_min_system.C)
-        print("-----")
-        print(as_min_system.K)
-        print("-----")
-        print(as_min_system.F)
-        
-        print("Qmin")
-        print(Qmin)
         
         return as_min_system, Qmin
     
