@@ -408,6 +408,13 @@ class dLPV(LPV):
             Amin[:, :, i] = (1.0 / np.sqrt(psig[i, 0])) * self.A[:, :, i]
 
         F = np.eye(self.ny)
+        
+        # We round to 4 decimal point same as in the original Matlab code
+        Amin = np.round(Amin,4)
+        Kmin = np.round(Kmin,4)
+        Qmin = np.round(Qmin,4)
+        self.C = np.round(self.C,4)
+        
         as_system = asLPV(Amin, self.C, Kmin, F)
 
         return as_system, Qmin
