@@ -3,13 +3,17 @@
 test: test-aslpv test-dlpv test-lpv
 
 test-aslpv:
-	python3 -m unittest test.lpv.asLPVTest
+	@echo Testing asLPV
+	@python3 -m unittest test.lpv.asLPVTest
 
 test-dlpv:
-	python3 -m unittest test.lpv.dLPVTest
+	@echo Testing dLPV
+	@python3 -m unittest test.lpv.dLPVTest
 
 test-lpv:
-	python3 -m unittest test.lpv.LPVTest
+	@echo Testing LPV
+	@python3 -m unittest test.lpv.LPVTest
 
 run:
-	python3 -m src.lpv.main
+	@echo Executing main
+	@python3 -m src.lpv.main
