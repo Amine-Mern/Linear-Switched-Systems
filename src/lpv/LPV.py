@@ -107,7 +107,7 @@ class LPV:
             ynf[:, k] = self.C @ x[:, k]
         return y, ynf, x
     
-    def simulate_Innovation(self,Ntot,y,p):
+    def simulate_Innovation(self,y,p):
         """
         If used on :
         asLPV : Simulates the innovation error of an LPV system in innovation form
@@ -123,8 +123,8 @@ class LPV:
         Returns :
         - Res : Innovation error noise (if used on as-LPV (F @ v(t)))
                  : Static contribution of the input to(the output (if used on dLPV (D @ u(t)))
-        
         """
+        Ntot = y.shape[1]
         np_ = self.np
         x1 = np.zeros((self.nx,Ntot+1))
         Res = np.zeros((self.ny,Ntot))
@@ -134,7 +134,8 @@ class LPV:
                 x1[:,k+1] += (self.A[:,:,i] @ x1[:,k] + self.K[:,:,i] @ Res[:,k]) * p[i,k];
         
         Res[:,-1] = y[:,-1] - self.C @ x1[:,-1]
-        return Res
+        
+        return Res[0]
     
     def isEquivalentTo(self, other, x0, x0_other, tolerance=None):
         """
@@ -153,6 +154,7 @@ class LPV:
                         
         Returns:
             bool: True if the two LPV systems are equivalent within the tolerance, False otherwise.
+        TESTED
         """
         if tolerance is None:
             tolerance = 1e-5
