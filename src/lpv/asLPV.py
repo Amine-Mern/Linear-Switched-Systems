@@ -1,4 +1,4 @@
-from .LPV import LPV
+from LPV import LPV
 import numpy as np
 import math
 
@@ -144,7 +144,7 @@ class asLPV(LPV):
         return G_true_rounded
     
     def convertToDLPV(self,v,p,psig):
-        from .dLPV import dLPV
+        from dLPV import dLPV
         """
         Converts an asLPV to an dLPV
         We calculate T_sig here to use P_True, Q_True, without needing to use them later.
