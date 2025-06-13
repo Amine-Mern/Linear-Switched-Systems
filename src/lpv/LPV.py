@@ -180,8 +180,8 @@ class LPV:
         for step in range(N + 1):
             diff_markov = compC @ R # C1*(B1 or A1^k B1)-C2*(B2 or A2^k B2)
             if np.linalg.norm(diff_markov, 2) > tolerance:
-                print("Not equivalent - Difference in Markov parameters: ")
-                print(diff_markov)
+                #print("Not equivalent - Difference in Markov parameters: ")
+                #print(diff_markov)
                 return False
             
             R_new = []
