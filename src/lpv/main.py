@@ -1,5 +1,5 @@
 import numpy as np
-from asLPV import asLPV
+from src.lpv.asLPV import asLPV
 
 def calculate_v(ny, Ntot):
     return np.random.randn(ny,Ntot)
