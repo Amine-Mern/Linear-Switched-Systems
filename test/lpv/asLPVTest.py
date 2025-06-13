@@ -1,15 +1,45 @@
 import unittest
 import numpy as np
 from src.lpv.asLPV import asLPV
-from src.main.config import initialize_parameters
 
 class asLPVTest(unittest.TestCase):
+    
     def setUp(self):
-        params  =  initialize_parameters()
-        self.A, self.C, self.K, self.F  = params['A'], params['C'], params['K'], params['F']
-        self.psig = params['psig']
-        self.asLPV = asLPV(self.A,self.C,self.K,self.F)
-        self.Ntot = params['Ntot']
+        # These are the matrices are used in the main example in the MATLAB code this project is based on (this way we can test and verify the functions we define by comparing the values with the MATLAB
+        # results)
+        
+        self.A = np.zeros((2,2,2))
+        self.A[:, :, 0] = np.array([[0.4, 0.4], [0.2, 0.1]])
+        self.A[:, :, 1] = np.array([[0.1, 0.1], [0.2, 0.3]])
+        
+        self.C = np.array([[1, 0]])
+        
+        self.K = np.zeros((2, 1, 2))
+        self.K[:, :, 0] = np.array([[0], [1]])
+        self.K[:, :, 1] = np.array([[0], [1]])
+        
+        self.F = np.array([[1]])
+        
+        self.asLPV = asLPV(self.A,self.C,self.K,self.F)        
+        
+        # These vectors/matrix are the ones computed in the main of MATLAB project with a set seed, we use these values same as MATLAB to compare them with our result values (so our results should
+        # be equal to the ones in MATLAB)
+        
+        self.psig =  np.array([[1.0000],[0.7625]])
+        self.p = np.array([[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],[0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]]) 
+        self.v = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
+        
+    def test_simulate_y(self):
+        y,ynf,x = self.asLPV.simulate_y(self.v,self.p)
+        
+        # The simulated vectors in MATALAB
+        expected_y = np.array([[0.9794, -0.2656, -0.1535, -0.0159, -1.4287, -0.7147, 1.3786, -3.5134, 0.8502, 0]])
+        expected_ynf = np.array([[0, 0, 0.3949, 0.0804, -0.0480, 0.0137, -0.5074, -0.5720, -0.1298, 0]])
+        expected_x = np.array([[0, 0, 0.3949, 0.0804, -0.0480, 0.0137, -0.5074, -0.5720, -0.1298, 0.2363], [0, 1.0174, -0.1686, -0.2529, 0.0841, -1.1102, -1.5012, 0.0973, 0.7848, 0.5660]])
+        
+        self.assertTrue(np.allclose(y,expected_y,rtol = 1e-4, atol = 1e-4))
+        self.assertTrue(np.allclose(ynf,expected_ynf,rtol = 1e-4, atol = 1e-4))
+        self.assertTrue(np.allclose(x,expected_x,rtol = 1e-4, atol = 1e-4))
     
     def test_isFormInnovation_True(self):
         self.assertTrue(self.asLPV.isFormInnovation(self.psig))
@@ -40,24 +70,13 @@ class asLPVTest(unittest.TestCase):
         self.assertFalse(asLPVsys.isFormInnovation(psig))
 
     def test_Compute_vesp(self):
-        #v_test : the v used in this test to check if the calculations are correct (length is shorter that normal) Ntot = 10 in this specific case, can't test 2000 length vector)
-        v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
         
         #This is the value of the expected v_esp (in the Matlab code this code originated from, the value approximated 1.8366)
         expected = 1.8366
-        self.assertTrue(self.asLPV.compute_vsp(v_test) == expected)
+        self.assertTrue(self.asLPV.compute_vsp(self.v) == expected)
     
-    def test_compute_Qi(self):
-        #v_test : the v used in this test to check if the calculations are correct (length is shorter that normal) Ntot = 10 in this specific case, can't test 2000 length vector))
-        #This is used to avoid the randomness in the noise when we define it
-        v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
-        
-        #Randomness is used to defined p, so we define one for this test
-        p_test = np.array([
-    [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
-    [0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
-])        
-        Qi = self.asLPV.compute_Qi(v_test,p_test)
+    def test_compute_Qi(self):        
+        Qi = self.asLPV.compute_Qi(self.v,self.p)
         
         #Values obtained from compiling the working Matlab code 
        
@@ -71,21 +90,9 @@ class asLPVTest(unittest.TestCase):
         self.assertTrue(Qi[0][0][1] == expected2)
         
     def test_compute_Pi(self):
-         #v_test : the v used in this test to check if the calculations are correct (length is shorter that normal) Ntot = 10 in this specific case, can't test 2000 length vector))
-        #This is used to avoid the randomness in the noise when we define it
-        v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
-        #Randomness is used to defined p, so we define one for this test
-
-        p_test = np.array([
-[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
-[0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
-])
-        Qi = self.asLPV.compute_Qi(v_test,p_test)
-
-        psig_test = np.array([[1.0000],
-        [0.7625]])
+        Qi = self.asLPV.compute_Qi(self.v,self.p)
         
-        Pi = self.asLPV.compute_Pi(psig_test,Qi)
+        Pi = self.asLPV.compute_Pi(self.psig,Qi)
         
         #Creating the expected Matrix showed in MATLAB :
         #Expected 3D Matrix
@@ -98,30 +105,17 @@ class asLPVTest(unittest.TestCase):
         Expected[:,:,0] = np.array([[1.0953,0.4612],[0.4612,4.5167]])
         Expected[:,:,1] = np.array([[0.8352,0.3517],[0.3517,3.4438]])
         
-        Expected_rounded = np.round(Expected,4)
-
         self.assertTrue(np.allclose(Pi,Expected,rtol = 1e-4, atol = 1e-6))
 
     def test_compute_Gi(self):
-        #This is used to avoid the randomness in the noise when we define it
-        v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
-        #Randomness is used to defined p, so we define one for this test
-
-        p_test = np.array([
-[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
-[0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
-])
-        psig_test = np.array([[1.0000],
-        [0.7625]])
-        
         ##Compute_Qi
-        Qi = self.asLPV.compute_Qi(v_test,p_test)
+        Qi = self.asLPV.compute_Qi(self.v,self.p)
         
         ##Compute_Pi
-        Pi = self.asLPV.compute_Pi(psig_test,Qi)
+        Pi = self.asLPV.compute_Pi(self.psig,Qi)
         
         ##Compute_Gi
-        Gi = self.asLPV.compute_Gi(psig_test,p_test,Qi,Pi)
+        Gi = self.asLPV.compute_Gi(self.psig,self.p,Qi,Pi)
         
         ## Expected :
         Expected = np.zeros((2, 1, 2)) 
@@ -133,17 +127,6 @@ class asLPVTest(unittest.TestCase):
         self.assertTrue(np.allclose(Gi,Expected,rtol = 1e-4, atol = 1e-6))
         
     def test_convertToDLPV(self):
-        v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
-        
-        #Randomness is used to defined p, so we define one for this test
-
-        p_test = np.array([
-[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
-[0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]
-])
-        psig_test = np.array([[1.0000],
-        [0.7625]])
-        
         # We can construct all the expected matrix based on the correct MATLAB values
         expected_An = np.zeros((2,2,2))
         
@@ -163,7 +146,7 @@ class asLPVTest(unittest.TestCase):
         expected_G_true[:,0,0] = np.array([0.6226,2.1018])
         expected_G_true[:,0,1] = np.array([0.1359,2.8168])
         
-        d_system, T_sig = self.asLPV.convertToDLPV(v_test,p_test,psig_test)
+        d_system, T_sig = self.asLPV.convertToDLPV(self.v,self.p,self.psig)
         
         An = d_system.A
         G_true = d_system.B
@@ -178,18 +161,8 @@ class asLPVTest(unittest.TestCase):
         self.assertTrue(np.allclose(T_sig, expected_Tsig,rtol = 1e-03, atol = 1e-6))
         
     def test_stochminimize(self):
-        
-        v_test = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284,1.8860 ,-2.9414,0.9800 ,-1.1918]])
-        
-        #Randomness is used to defined p, so we define one for this test
-
-        p_test = np.array([[1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
-        [0.0387, -0.1185, -0.4488, -1.2149, -0.1990, 0.6277, -1.1521, -1.2657, -0.3922, -1.3991]])
-        
-        psig_test = np.array([[1.0000],[0.7625]])
-                
         #Execute the function we are testing
-        as_min_system, Qmin = self.asLPV.stochMinimize(v_test,p_test,psig_test)
+        as_min_system, Qmin = self.asLPV.stochMinimize(self.v,self.p,self.psig)
         
         A = as_min_system.A
         C = as_min_system.C
@@ -198,8 +171,8 @@ class asLPVTest(unittest.TestCase):
         
         exp_A = np.zeros((2, 2, 2))
         
-        # By construction Amin can have negative values in the matrix cause by SVD
-        # All singular values are distinct, so every valid SVD differs only be sign of each pair of singular vectors
+        # By construction Amin can have negative values in the matrix caused by SVD
+        # All singular values are distinct, so every valid SVD differs only by sign of each pair of singular vectors
         
         #Expected MATLAB A
         exp_A[:, :, 0] = np.array([[0.4645, -0.3579],[-0.1579,  0.0355]])

@@ -1,4 +1,4 @@
-from LPV import LPV
+from .LPV import LPV
 import numpy as np
 from scipy.linalg import orth
 
@@ -104,41 +104,29 @@ class dLPV(LPV):
                   Reduced initial state vector
         """
         Anum = np.vstack([self.A[:, :, i] for i in range(self.np)])
-        print("A = ",Anum)
+        
         Bnum = np.hstack([self.B[:, :, i] for i in range(self.np)])
-        print("B = ",Bnum)
+        
         Cnum = np.vstack([self.C for _ in range(self.np)])
-        print("C = ",Cnum)
         x0 = x0.reshape(-1, 1)
         B_hat = np.hstack([x0, Bnum])
-        print("B_hat", B_hat)
-        print("x_0", x0)
         
         V_f = orth( B_hat)
-        print("V_f = ", V_f)
+        
         V_0 = V_f.copy()
-        print("V_0 = ", V_0)
         
         quit = False
         while not quit :
             r = np.linalg.matrix_rank(V_f)
-            print("r", r)
             V_prime = V_0.copy()
-            print("V_prime", V_prime)
+            
             for j in range(self.np):
                 Aj = Anum[j * self.nx:(j + 1) * self.nx, :]
                 V_prime = np.hstack([V_prime, Aj @ V_f])
-                print("V_prim ", V_prime, j)
-            print("V_primeFinal =", V_prime)
-            print("othooooo ", orth(V_prime))
-            print("V_f", V_f)
             V_f = orth(V_prime)
-            print("--------V_F",V_f)
             quit = (r == np.linalg.matrix_rank(V_f))
-            print("r", r)
         
         Reach_mat = V_f
-        print("Reach_mat", Reach_mat)
         reduced_order = Reach_mat.shape[1]
 
         Ar = np.zeros((reduced_order, reduced_order, self.np))
@@ -151,15 +139,15 @@ class dLPV(LPV):
         Cr = self.C @ Reach_mat
         x0r = Reach_mat.T @ x0
         
-        for i in range(self.np):
-            print(f"Ar[:,:,{i}]:\n", Ar[:, :, i])
-        for i in range(self.np):
-            print(f"Br[:,:,{i}]:\n", Br[:, :, i])
-        print("Cr = ",  Cr)
-        print("x0r = ", x0r)
-        print("reach_mat = ", Reach_mat)
-        print("r = " ,reduced_order)
-        
+#         for i in range(self.np):
+#             print(f"Ar[:,:,{i}]:\n", Ar[:, :, i])
+#         for i in range(self.np):
+#             print(f"Br[:,:,{i}]:\n", Br[:, :, i])
+#         print("Cr = ",  Cr)
+#         print("x0r = ", x0r)
+#         print("reach_mat = ", Reach_mat)
+#         print("r = " ,reduced_order)
+#         
         return Reach_mat, reduced_order, Ar, Br, Cr, x0r
 
     
@@ -185,24 +173,18 @@ class dLPV(LPV):
             x0o : ndarray
                   Reduced initial state
         """
-        print("-----------------obssss startedd---------------")
         Cnum = np.vstack([self.C for _ in range(self.np)])
         x0 = x0.reshape(-1,1)
-        print("Cnum =" ,Cnum)
         Wf = orth(Cnum.T)
         Wf = Wf
-        print("Wf = " , Wf)
         r = np.linalg.matrix_rank(Wf)
-        print("r", r)
 
         quit = False
         while not quit:
             Wprime = Cnum.T
             for i in range(self.np):
                 Wprime = np.hstack((Wprime, self.A[:, :, i].T @ Wf))
-                print("W_prime = ", Wprime, i)
             new_Wf = orth(Wprime)
-            print("new_Wf = ", new_Wf, i)
             quit = new_Wf.shape[1] == r
             r = new_Wf.shape[1]
             Wf = new_Wf
@@ -219,14 +201,16 @@ class dLPV(LPV):
         x0r = Wf.T @ x0
 
         Obs_mat = Wf
-        for i in range(self.np):
-            print(f"Ao[:,:,{i}]:\n", Ar[:, :, i])
-        for i in range(self.np):
-            print(f"Bo[:,:,{i}]:\n", Br[:, :, i])
-        print("Co = ",  Cr)
-        print("x0r = ", x0r)
-        print("Obs_mat = ", Obs_mat)
-        print("r = " ,reduced_order)
+        
+#         for i in range(self.np):
+#             print(f"Ao[:,:,{i}]:\n", Ar[:, :, i])
+#         for i in range(self.np):
+#             print(f"Bo[:,:,{i}]:\n", Br[:, :, i])
+#         print("Co = ",  Cr)
+#         print("x0r = ", x0r)
+#         print("Obs_mat = ", Obs_mat)
+#         print("r = " ,reduced_order)
+
         return Obs_mat, reduced_order, Ar, Br, Cr, x0r
     
     def minimize(self, x0):
@@ -289,14 +273,12 @@ class dLPV(LPV):
                 self.B[:, :, i],
                 other.B[:, :, i]
             ])
-        print("Anum3 = ", Anum3)
-        print("Bnum3 = ", Bnum3)
+        
         Cnum3 = np.hstack([self.C, other.C])
-        print("Cnum3 = ", Cnum3)
+
         Dnum3 = np.hstack([self.D, other.D])
 
         x03 = np.vstack([x0.reshape(-1, 1), x0_other.reshape(-1, 1)])
-        print("x03 = ", x03)
         
         merged_dLPV = dLPV(Anum3, Cnum3, Bnum3,self.D)
         obs_mat, obs_rank, Ao, Bo, Co, x0o = merged_dLPV.obs_reduction(x03)
@@ -308,7 +290,6 @@ class dLPV(LPV):
         try:
             T = np.linalg.inv(T2) @ T1
         except np.linalg.LinAlgError:
-            print("T is not inversible therefore the dLPVs are not isomorphic")
             return False  
 
         for i in range(self.np):
@@ -386,7 +367,7 @@ class dLPV(LPV):
             return Pold, Qold, Kold
 
     def convert_to_asLPV(self, T_sig, psig):
-        from asLPV import asLPV 
+        from .asLPV import asLPV 
         """
         Converts the current dLPV system to an asLPV system using stochastic recursion.
 

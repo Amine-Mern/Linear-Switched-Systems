@@ -122,7 +122,7 @@ class LPV:
         
         Returns :
         - Res : Innovation error noise (if used on as-LPV (F @ v(t)))
-                 : Static contribution of the input to( the output (if used on dLPV (D @ u(t)))
+                 : Static contribution of the input to(the output (if used on dLPV (D @ u(t)))
         
         """
         np_ = self.np

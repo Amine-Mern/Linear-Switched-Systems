@@ -1,4 +1,4 @@
-from LPV import LPV
+from .LPV import LPV
 import numpy as np
 import math
 
@@ -33,6 +33,7 @@ class asLPV(LPV):
 
     Methods
     -------
+    simulate_y()
     
     isFormInnovation()
     
@@ -52,6 +53,46 @@ class asLPV(LPV):
     def __init__(self, A, C, K, F):
         self.ne = K.shape[1]
         super().__init__(A, C, K=K, F=F, B=None, D=None,)
+    
+    def simulate_y(self, v, p):
+        """
+        Simulate the LPV system output
+        
+        Parameters:
+            - u : ndarray
+                  Input array
+            - v : ndarray
+                  Noise array, can be None if no noise
+            - p : ndarray
+                  Scheduling
+            - Ntot : int
+                     Total number of time steps
+            
+        Returns:
+            - y : ndarray
+                  Output with noise
+            - ynf : ndarray
+                    Output noise free
+            - x : ndarray
+                  State trajectory
+        TESTED
+        """
+        nx, ny, np_ ,Ntot = self.nx, self.ny, self.np,v.shape[1]
+        x = np.zeros((nx, Ntot))
+        y = np.zeros((ny, Ntot))
+        ynf = np.zeros((ny, Ntot))
+        
+        for k in range (Ntot-1):
+            for i in range(np_):
+                term_noise = self.K[:,:,1] @ v[:,k]
+                x[:, k+1] += (self.A[:, :, i] @ x[:, k] + term_noise) * p[i, k] 
+            noise_output = self.F @ v[:,k]
+            y[:, k] = self.C @ x[:, k] + noise_output
+            ynf[:, k] = self.C @ x[:, k]
+        
+        round_y, round_ynf, round_x = np.round(y,4),np.round(ynf,4),np.round(x,4)
+        return round_y,round_ynf,round_x
+    
     
     def isFormInnovation(self,psig):
         """
@@ -144,7 +185,7 @@ class asLPV(LPV):
         return G_true_rounded
     
     def convertToDLPV(self,v,p,psig):
-        from dLPV import dLPV
+        from .dLPV import dLPV
         """
         Converts an asLPV to an dLPV
         We calculate T_sig here to use P_True, Q_True, without needing to use them later.
