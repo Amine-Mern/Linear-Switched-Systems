@@ -43,7 +43,7 @@ class asLPVTest(unittest.TestCase):
     
     def test_Simulate_Innovation(self):
         #Resulted for MATLAB main_example
-        expected_err1 = v = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284, 1.8860, -2.9414, 0.9800, -0.2087]])
+        expected_err1 = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284, 1.8860, -2.9414, 0.9800, -0.2087]])
         
         (y,ynf,x) = self.asLPV.simulate_y(self.v,self.p)
         
@@ -52,11 +52,8 @@ class asLPVTest(unittest.TestCase):
         err1 = as_min_sys.simulate_Innovation(y,self.p)
         err1 = np.round(err1,4)
         
-        flattened_err1 = err1[0]
-        err = flattened_err1[int(np.floor(self.v.shape[1]/2)+1):-1]
-    
-        flattened_expected_err1 = expected_err1[0]
-        expected_err = flattened_expected_err1[int(np.floor(self.v.shape[1]/2)+1):-1]
+        err = err1[:,self.v.shape[1]//2:]
+        expected_err = expected_err1[:,self.v.shape[1]//2:]
         
         self.assertTrue(np.allclose(err1,expected_err1,rtol=1e-4,atol=1e-4))
         self.assertTrue(np.allclose(err,expected_err,rtol=1e-4,atol=1e-4))

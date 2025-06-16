@@ -1,4 +1,4 @@
-.PHONY: all test test-aslpv test-dlpv test-lpv run
+.PHONY: all test test-aslpv test-dlpv test-lpv graph run
 
 test: test-aslpv test-dlpv test-lpv
 
@@ -13,6 +13,10 @@ test-dlpv:
 test-lpv:
 	@echo Testing LPV
 	@python3 -m unittest test.lpv.LPVTest
+
+graph:
+	@echo Graph 1
+	@python3 -m src.lpv.graph
 
 run:
 	@echo Executing main
