@@ -52,10 +52,12 @@ class asLPVTest(unittest.TestCase):
         err1 = as_min_sys.simulate_Innovation(y,self.p)
         err1 = np.round(err1,4)
         
-        err = err1[int(np.floor(self.v.shape[1]/2)+1):-1]
+        flattened_err1 = err1[0]
+        err = flattened_err1[int(np.floor(self.v.shape[1]/2)+1):-1]
     
-        expected_err = expected_err1[int(np.floor(self.v.shape[1]/2)+1):-1]
-
+        flattened_expected_err1 = expected_err1[0]
+        expected_err = flattened_expected_err1[int(np.floor(self.v.shape[1]/2)+1):-1]
+        
         self.assertTrue(np.allclose(err1,expected_err1,rtol=1e-4,atol=1e-4))
         self.assertTrue(np.allclose(err,expected_err,rtol=1e-4,atol=1e-4))
         
