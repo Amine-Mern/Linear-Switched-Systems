@@ -12,6 +12,19 @@ class LPVTest(unittest.TestCase):
 
         self.A2 = np.zeros((2, 2, 2))
         self.B2 = np.zeros((2, 1, 2))
+        
+    def test_simulate_y(self):
+        sys = LPV(self.A1,self.C1,self.B1,self.D1)
+        sys.K = np.zeros((2,1,2))
+        sys.F = np.eye(1)
+        u = np.random.randn(1, 10)
+        v = np.random.randn(1, 10)
+        p = np.random.rand(2, 10)
+        
+        y, ynf, x = sys.simulate_y(u, v, p, 10)
+        self.assertEqual(y.shape, (1, 10), "y shape incorrect")
+        self.assertEqual(ynf.shape, (1, 10), "ynf shape incorrect")
+        self.assertEqual(x.shape, (2, 10), "x shape incorrect")
 
     def test_isEquivalent_true(self):
         

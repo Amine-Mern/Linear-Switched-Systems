@@ -69,6 +69,7 @@ class dLPV(LPV):
                     Output input free
             - x : ndarray
                   State trajectory
+        TESTED
         """
         nx, ny, np_ = self.nx, self.ny, self.np
         x = np.zeros((nx, Ntot))
@@ -102,6 +103,7 @@ class dLPV(LPV):
                  Reduced C matrix
             x0r : ndarray
                   Reduced initial state vector
+        TESTED
         """
         Anum = np.vstack([self.A[:, :, i] for i in range(self.np)])
         
@@ -172,6 +174,7 @@ class dLPV(LPV):
                  Reduced C matrix 
             x0o : ndarray
                   Reduced initial state
+        TESTED
         """
         Cnum = np.vstack([self.C for _ in range(self.np)])
         x0 = x0.reshape(-1,1)
@@ -226,6 +229,7 @@ class dLPV(LPV):
                           Reduced minimal dLPV system.
             x0m : ndarray
                   Reduced initial state vector.
+        TESTED
         """
         x0 = x0.reshape(-1,1)
         
@@ -253,6 +257,7 @@ class dLPV(LPV):
 
         Returns:
             bool : True if systems are isomorphic, False otherwise.
+        TESTED
         """
         tol = 1e-10
         if not isinstance(other, dLPV):
@@ -327,6 +332,7 @@ class dLPV(LPV):
                 Pold : ndarray [nx, nx, np]
                 Qold : ndarray [ny, ny, np]
                 Kold : ndarray [nx, ny, np]
+            TESTED
             """
             A = self.A
             B = self.B
@@ -382,6 +388,7 @@ class dLPV(LPV):
                 Instance of asLPV class with updated A, K, C, F.
             Qmin : ndarray [ny, ny, np]
                 Output noise covariance matrices computed from recursion.
+        TESTED
         """
         Pmin, Qmin, Kmin = self.Recursion(T_sig, psig)
         Amin = np.zeros_like(self.A)

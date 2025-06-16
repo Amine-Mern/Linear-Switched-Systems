@@ -71,7 +71,7 @@ class LPV:
         self.np = A.shape[2] if A.ndim == 3 else 1
         
     
-    def simulate_y(self, u, v, p):
+    def simulate_y(self, u, v, p, Ntot):
         """
         Simulate the LPV system output
         
@@ -92,6 +92,7 @@ class LPV:
                     Output noise free
             - x : ndarray
                   State trajectory
+        TESTED
         """
         nx, ny, np_ = self.nx, self.ny, self.np
         x = np.zeros((nx, Ntot))
