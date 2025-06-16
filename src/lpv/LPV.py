@@ -71,7 +71,7 @@ class LPV:
         self.np = A.shape[2] if A.ndim == 3 else 1
         
     
-    def simulate_y(self, u, v, p, Ntot):
+    def simulate_y(self, u, v, p):
         """
         Simulate the LPV system output
         
@@ -135,7 +135,7 @@ class LPV:
         
         Res[:,-1] = y[:,-1] - self.C @ x1[:,-1]
         
-        return Res[0]
+        return Res
     
     def isEquivalentTo(self, other, x0, x0_other, tolerance=None):
         """

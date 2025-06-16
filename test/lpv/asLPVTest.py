@@ -43,7 +43,7 @@ class asLPVTest(unittest.TestCase):
     
     def test_Simulate_Innovation(self):
         #Resulted for MATLAB main_example
-        expected_err1 = v = np.array([0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284, 1.8860, -2.9414, 0.9800, -0.2087])
+        expected_err1 = v = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284, 1.8860, -2.9414, 0.9800, -0.2087]])
         
         (y,ynf,x) = self.asLPV.simulate_y(self.v,self.p)
         
