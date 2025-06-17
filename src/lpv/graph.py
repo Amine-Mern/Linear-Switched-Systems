@@ -55,7 +55,6 @@ def main():
     half = Ntot//2
     
     innov_error = error[:,np.floor(half)+1:]
-    print(innov_error.shape)
     
 # Pls don't delete these comments, might be useful (this is a unfinished version of the graph) (amine)
 #     print(p[:,np.floor(half)+1:])
