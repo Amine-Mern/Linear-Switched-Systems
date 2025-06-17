@@ -115,6 +115,15 @@ class dLPV(LPV):
         
         V_f = orth( B_hat)
         
+        if V_f.shape[1] == 0:
+            print(
+                "ERROR : Reachability matrix is empty. "
+                "This usually means that the input matrix B (or gain K in innovation form) is zero, "
+                "and the initial state x0 does not excite the system. "
+                "The system is not reachable under the given conditions."
+            )
+            exit()
+        
         V_0 = V_f.copy()
         
         quit = False
