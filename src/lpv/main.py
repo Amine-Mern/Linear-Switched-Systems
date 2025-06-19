@@ -23,11 +23,35 @@ def check_dimensions(A, C, K, F, p):
     assert n_sig == n_sig_k, f"A and K must have the same number of scheduling points: {n_sig} vs {n_sig_k}"
     assert ny == ny_f, f"C and F must have same number of outputs: {ny} vs {ny_f}"
     assert nw == nw_f, f"K and F must have same number of noise inputs: {nw} vs {nw_f}"
-    return True 
+    return True
+
+def is_A_matrix_stable(A):
+        """
+        Check if the matrix sum_i (Ai ⊗ Ai) is stable, which means that all
+        eigenvalues are strickly inside the complex unit disk
+        
+        Parameters
+        ----------
+        A : np.ndarray
+            3D array representing the Ai matrices
+
+        Returns : Bool
+                  True if stable, False otherwise
+        """
+        n = A.shape[0]
+        np_ = A.shape[2]
+        M = np.zeros((n**2,n**2))
+        for i in range(np_):
+            M += np.kron(A[:,:,i],A[:,:,i])
+        epsi = 10**(-5)
+        eigvals = np.linalg.eigvals(M)
+        max_abs_eigval = np.max(np.abs(eigvals))     
+        return max_abs_eigval < 1 - epsi
 
 
 def main(A, C, K, F, p, x0=None):
     check_dimensions(A, C, K, F, p)
+    print(is_A_matrix_stable(A))
     nx = A.shape[0]
     ny = C.shape[0]
     Ntot = p.shape[1]
@@ -55,24 +79,24 @@ def main(A, C, K, F, p, x0=None):
         
         
 if __name__ == "__main__":
-    A = np.random.randn(2, 2, 2)
-    K = np.random.randn(2, 1, 2)
-    C = np.random.randn(1, 2)
-    F = np.eye(1)
-    p = np.random.randn(2, 100)
-
-
-# #Exemple where its not in innovation form but it works
-#     A = np.array([
-#         [[0.5, 0.3],
-#          [0.0, 0.4]],
-#         [[0.2, 0.1],
-#          [0.0, 0.3]]
-#     ]).transpose(1, 2, 0)
-# 
-#     K = np.random.randn(2, 1, 2) * 0.01
-#     C = np.array([[1.0, 0.0]])
-#     F = np.array([[2.0]])  # F ≠ I
+#     A = np.random.randn(2, 2, 2)
+#     K = np.random.randn(2, 1, 2)
+#     C = np.random.randn(1, 2)
+#     F = np.eye(1)
 #     p = np.random.randn(2, 100)
+
+
+#Exemple where its not in innovation form but it works
+    A = np.array([
+        [[0.5, 0.3],
+         [0.0, 0.4]],
+        [[0.2, 0.1],
+         [0.0, 0.3]]
+    ]).transpose(1, 2, 0)
+
+    K = np.random.randn(2, 1, 2) * 0.01
+    C = np.array([[1.0, 0.0]])
+    F = np.array([[2.0]])  # F ≠ I
+    p = np.random.randn(2, 100)
 
     main(A, C, K, F, p)
