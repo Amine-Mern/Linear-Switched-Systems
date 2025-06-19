@@ -1,0 +1,108 @@
+import numpy as np
+from src.lpv.asLPV import asLPV
+
+def calculate_v(ny, Ntot):
+    return np.random.randn(ny,Ntot)
+
+def check_dimensions(A, C, K, F, p):
+    nx, _, n_sig = A.shape
+    ny, nx_c = C.shape
+    nx_k, nw, n_sig_k = K.shape
+    ny_f, nw_f = F.shape
+    np_, Ntot = p.shape
+
+    assert nx == nx_c, f"Dimension mismatch: A has {nx} states, but C has {nx_c} columns"
+    assert nx_k == nx, f"K should have {nx} rows (states), but has {nx_k}"
+    assert n_sig == n_sig_k, f"A and K must have the same number of scheduling points: {n_sig} vs {n_sig_k}"
+    assert ny == ny_f, f"C and F must have same number of outputs: {ny} vs {ny_f}"
+    assert nw == nw_f, f"K and F must have same number of noise inputs: {nw} vs {nw_f}"
+    return True
+
+def is_A_matrix_stable(A):
+        """
+        Check if the matrix sum_i (Ai ⊗ Ai) is stable, which means that all
+        eigenvalues are strickly inside the complex unit disk
+        
+        Parameters
+        ----------
+        A : np.ndarray
+            3D array representing the Ai matrices
+
+        Returns : Bool
+                  True if stable, False otherwise
+        """
+        n = A.shape[0]
+        np_ = A.shape[2]
+        M = np.zeros((n**2,n**2))
+        for i in range(np_):
+            M += np.kron(A[:,:,i],A[:,:,i])
+        epsi = 10**(-5)
+        eigvals = np.linalg.eigvals(M)
+        max_abs_eigval = np.max(np.abs(eigvals))     
+        return max_abs_eigval < 1 - epsi
+
+def asLPVGen(nx, ny, nv, np_, psig):
+    """
+    Generates a stable asLPV system (innovation form + autonomous stability).
+    
+    Parameters:
+        - nx : number of states
+        - ny : number of outputs
+        - nv : number of noise inputs
+        - np_ : number of scheduling points
+        - psig : probability distribution over the scheduling points
+    
+    Returns:
+        system : a stable asLPV
+    """
+    out = False
+    while not out:
+        A = np.random.randn(nx, nx, np_)
+        K = np.random.randn(nx, nv, np_) * 0.1
+        C = np.random.randn(ny, nx)
+        F = np.eye(ny)
+        system = asLPV(A, C, K, F)
+
+        form_stable = system.isFormInnovation(psig)
+        autonomous_stable = is_A_matrix_stable(A)
+
+        if form_stable and autonomous_stable:
+            out = True
+    print("A =")
+    for i in range(np_):
+        print(f"A[:,:,{i}] =\n{A[:, :, i]}")
+    print("\nK =")
+    for i in range(np_):
+        print(f"K[:,:,{i}] =\n{K[:, :, i]}")
+    print("\nC =\n", C)   
+
+    return system
+
+
+def main(nx, ny, nv, np_):
+    psig = np.ones((np_, 1)) / np_ 
+    system = asLPVGen(nx, ny, nv, np_, psig)
+    p = np.random.randn(np_, 100)
+    try:
+        check_dimensions(system.A, system.C, system.K, system.F, p)
+        print("✅ Dimensions are consistent.")
+    except AssertionError as e:
+        print("❌ Dimension check failed:", e)
+
+    print("✅ Innovation Form Stability:", system.isFormInnovation(psig))
+    print("✅ Autonomous Stability:", is_A_matrix_stable(system.A))
+    
+    Ntot = p.shape[1]
+    v = calculate_v(ny, Ntot)
+    as_min_system, Qmin = system.stochMinimize(v, p, psig)
+    
+    print("\n--- Minimised system ---")
+    print("A:\n", as_min_system.A)
+    print("C:\n", as_min_system.C)
+    print("K:\n", as_min_system.K)
+    print("F:\n", as_min_system.F)
+    print("Qmin:\n", Qmin)
+    
+if __name__ == "__main__":
+    main(3,1,1,2)
+

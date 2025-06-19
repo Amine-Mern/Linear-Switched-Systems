@@ -1,4 +1,4 @@
-.PHONY: all test test-aslpv test-dlpv test-lpv graph run
+.PHONY: all test test-aslpv test-dlpv test-lpv graph run run2
 
 test: test-aslpv test-dlpv test-lpv
 
@@ -21,3 +21,7 @@ graph:
 run:
 	@echo Executing main
 	@python3 -m src.lpv.main
+
+run2: 	
+	@echo Execution Auto_main
+	@python3 -m src.lpv.Auto_main
