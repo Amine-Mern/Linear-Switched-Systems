@@ -18,28 +18,6 @@ def check_dimensions(A, C, K, F, p):
     assert nw == nw_f, f"K and F must have same number of noise inputs: {nw} vs {nw_f}"
     return True
 
-def is_A_matrix_stable(A):
-        """
-        Check if the matrix sum_i (Ai ⊗ Ai) is stable, which means that all
-        eigenvalues are strickly inside the complex unit disk
-        
-        Parameters
-        ----------
-        A : np.ndarray
-            3D array representing the Ai matrices
-
-        Returns : Bool
-                  True if stable, False otherwise
-        """
-        n = A.shape[0]
-        np_ = A.shape[2]
-        M = np.zeros((n**2,n**2))
-        for i in range(np_):
-            M += np.kron(A[:,:,i],A[:,:,i])
-        epsi = 10**(-5)
-        eigvals = np.linalg.eigvals(M)
-        max_abs_eigval = np.max(np.abs(eigvals))     
-        return max_abs_eigval < 1 - epsi
 
 def asLPVGen(nx, ny, nv, np_, psig):
     """
@@ -64,7 +42,7 @@ def asLPVGen(nx, ny, nv, np_, psig):
         system = asLPV(A, C, K, F)
 
         form_stable = system.isStablyInvertable(psig)
-        autonomous_stable = is_A_matrix_stable(A)
+        autonomous_stable = system.is_A_matrix_stable()
 
         if form_stable and autonomous_stable:
             out = True
@@ -90,7 +68,7 @@ def main(nx, ny, nv, np_):
         print("❌ Dimension check failed:", e)
 
     print("✅ Innovation Form Stability:", system.isStablyInvertable(psig))
-    print("✅ Autonomous Stability:", is_A_matrix_stable(system.A))
+    print("✅ Autonomous Stability:", system.is_A_matrix_stable())
     
     Ntot = p.shape[1]
     v = calculate_v(ny, Ntot)

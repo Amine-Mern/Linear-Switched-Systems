@@ -40,6 +40,9 @@ class LPV:
     simulate_Innovation(y,p,Ntot)
         Simulates the innovation error of an LPV system in innovation form
 
+    is_A_matrix_stable()
+        Checks if the matrix A is stable returns a boolean
+    
     isEquivalent(other, x0, x0_other, tolerance=1e-5)
         Checks whether this LPV system is equivalent to another LPV system
         by comparing their Markov parameters.
@@ -137,6 +140,24 @@ class LPV:
         Res[:,-1] = y[:,-1] - self.C @ x1[:,-1]
         
         return Res
+    
+    def is_A_matrix_stable(self):
+        """
+        Check if the matrix sum_i (Ai ⊗ Ai) is stable, which means that all
+        eigenvalues are strickly inside the complex unit disk
+
+        Returns : Bool
+                  True if stable, False otherwise
+        """
+        n = self.A.shape[0]
+        np_ = self.A.shape[2]
+        M = np.zeros((n**2,n**2))
+        for i in range(np_):
+            M += np.kron(self.A[:,:,i],self.A[:,:,i])
+        epsi = 10**(-5)
+        eigvals = np.linalg.eigvals(M)
+        max_abs_eigval = np.max(np.abs(eigvals))     
+        return max_abs_eigval < 1 - epsi
     
     def isEquivalentTo(self, other, x0, x0_other, tolerance=None):
         """
