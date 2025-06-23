@@ -16,12 +16,12 @@ test-lpv:
 
 graph:
 	@echo Graph 1
-	@python3 -m src.lpv.graph
+	@python3 -m src.main.graph
 
 run:
 	@echo Executing main
-	@python3 -m src.lpv.main
+	@python3 -m src.main.main
 
 run2: 	
 	@echo Execution Auto_main
-	@python3 -m src.lpv.Auto_main
+	@python3 -m src.main.Auto_main

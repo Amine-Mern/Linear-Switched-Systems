@@ -56,11 +56,11 @@ def main():
     
     innov_error = error[:,np.floor(half)+1:]
     
-# Pls don't delete these comments, might be useful (this is a unfinished version of the graph) (amine)
-#     print(p[:,np.floor(half)+1:])
-#     
-#     print("----------------------")
-#     p[:,half+1:-1]
+    #     Please don't delete these comments, might be useful (this is a unfinished version of the graph) (amine)
+    #     print(p[:,np.floor(half)+1:])
+    #     
+    #     print("----------------------")
+    #     p[:,half+1:-1]
 
     y2,ynf2,x2 = asLPV_sys.simulate_y(innov_error,p[:,np.floor(half)+1:])
     x_half = list(range(0,half))
@@ -78,7 +78,12 @@ def main():
     plt.ylabel('Value')
     
     plt.grid(True)
+    #Graph 1
     plt.show()
+
+
+    
+
 
 if __name__ == "__main__":
     main()

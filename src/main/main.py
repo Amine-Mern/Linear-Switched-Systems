@@ -25,33 +25,8 @@ def check_dimensions(A, C, K, F, p):
     assert nw == nw_f, f"K and F must have same number of noise inputs: {nw} vs {nw_f}"
     return True
 
-def is_A_matrix_stable(A):
-        """
-        Check if the matrix sum_i (Ai ⊗ Ai) is stable, which means that all
-        eigenvalues are strickly inside the complex unit disk
-        
-        Parameters
-        ----------
-        A : np.ndarray
-            3D array representing the Ai matrices
-
-        Returns : Bool
-                  True if stable, False otherwise
-        """
-        n = A.shape[0]
-        np_ = A.shape[2]
-        M = np.zeros((n**2,n**2))
-        for i in range(np_):
-            M += np.kron(A[:,:,i],A[:,:,i])
-        epsi = 10**(-5)
-        eigvals = np.linalg.eigvals(M)
-        max_abs_eigval = np.max(np.abs(eigvals))     
-        return max_abs_eigval < 1 - epsi
-
-
 def main(A, C, K, F, p, x0=None):
     check_dimensions(A, C, K, F, p)
-    print(is_A_matrix_stable(A))
     nx = A.shape[0]
     ny = C.shape[0]
     Ntot = p.shape[1]
@@ -63,6 +38,7 @@ def main(A, C, K, F, p, x0=None):
     psig = calculate_psig(p)
     
     system = asLPV(A, C, K, F)
+    print(system.is_A_matrix_stable())
     print(system.isStablyInvertable(psig))
     
     as_min_system, Qmin = system.stochMinimize(v, p, psig)

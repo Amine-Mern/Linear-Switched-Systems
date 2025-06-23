@@ -55,7 +55,7 @@ class LPVTest(unittest.TestCase):
         sys2 = LPV(self.A2, C2, self.B2, D2)
         
         self.assertTrue(sys1.isEquivalentTo(sys2,x01,x02))
-        
+
     def test_isEquivalent_false(self):
         self.A1[:, :, 0] = np.array([[0.9, 0.1],
                         [0.0, 0.5]])
