@@ -63,7 +63,7 @@ def main(A, C, K, F, p, x0=None):
     psig = calculate_psig(p)
     
     system = asLPV(A, C, K, F)
-    print(system.isFormInnovation(psig))
+    print(system.isStablyInvertable(psig))
     
     as_min_system, Qmin = system.stochMinimize(v, p, psig)
     

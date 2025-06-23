@@ -63,7 +63,7 @@ def asLPVGen(nx, ny, nv, np_, psig):
         F = np.eye(ny)
         system = asLPV(A, C, K, F)
 
-        form_stable = system.isFormInnovation(psig)
+        form_stable = system.isStablyInvertable(psig)
         autonomous_stable = is_A_matrix_stable(A)
 
         if form_stable and autonomous_stable:
@@ -89,7 +89,7 @@ def main(nx, ny, nv, np_):
     except AssertionError as e:
         print("❌ Dimension check failed:", e)
 
-    print("✅ Innovation Form Stability:", system.isFormInnovation(psig))
+    print("✅ Innovation Form Stability:", system.isStablyInvertable(psig))
     print("✅ Autonomous Stability:", is_A_matrix_stable(system.A))
     
     Ntot = p.shape[1]
@@ -103,7 +103,7 @@ def main(nx, ny, nv, np_):
     print("F:\n", as_min_system.F)
     print("Qmin:\n", Qmin)
     
-    print("✅  Stably invertible:", as_min_system.isFormInnovation(psig))
+    print("✅  Stably invertible:", as_min_system.isStablyInvertable(psig))
     
 if __name__ == "__main__":
     main(3,1,1,2)

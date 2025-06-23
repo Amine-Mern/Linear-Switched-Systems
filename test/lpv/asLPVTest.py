@@ -59,15 +59,15 @@ class asLPVTest(unittest.TestCase):
         self.assertTrue(np.allclose(err,expected_err,rtol=1e-4,atol=1e-4))
         
     
-    def test_isFormInnovation_True(self):
-        self.assertTrue(self.asLPV.isFormInnovation(self.psig))
+    def test_isStablyInvertable_True(self):
+        self.assertTrue(self.asLPV.isStablyInvertable(self.psig))
     
-    def test_isFormInnovation_False_F_not_Identity(self):
+    def test_isStablyInvertable_False_F_not_Identity(self):
         newF = np.array([[2]])
         asys2 = asLPV(self.A,self.C,self.K,newF)
-        self.assertFalse(asys2.isFormInnovation(self.psig))
+        self.assertFalse(asys2.isStablyInvertable(self.psig))
         
-    def test_isFormInnovation_False_Unstable_eigValues(self):
+    def test_isStablyInvertable_False_Unstable_eigValues(self):
         Unstable_A = np.zeros((2, 2, 2))
         Unstable_A[:, :, 0] = np.array([[1.2, 0.0],
                        [0.0, 1.1]])
@@ -85,7 +85,7 @@ class asLPVTest(unittest.TestCase):
         psig = np.array([0.5, 0.5])
 
         asLPVsys = asLPV(Unstable_A,Unst_C,Unst_K,Unst_F)
-        self.assertFalse(asLPVsys.isFormInnovation(psig))
+        self.assertFalse(asLPVsys.isStablyInvertable(psig))
 
     def test_Compute_vesp(self):
         

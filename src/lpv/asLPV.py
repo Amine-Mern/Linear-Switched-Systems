@@ -94,10 +94,10 @@ class asLPV(LPV):
         return round_y,round_ynf,round_x
     
     
-    def isFormInnovation(self,psig):
+    def isStablyInvertable(self,psig):
         """
         Checks if the autonomous stochastic Linear Parameter Varying System is
-        Innovation Form
+        stably invertable
         
         Returns : Boolean
         TESTED
