@@ -103,6 +103,8 @@ def main(nx, ny, nv, np_):
     print("F:\n", as_min_system.F)
     print("Qmin:\n", Qmin)
     
+    print("✅  Stably invertible:", as_min_system.isFormInnovation(psig))
+    
 if __name__ == "__main__":
     main(3,1,1,2)
 
