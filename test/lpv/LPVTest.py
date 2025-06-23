@@ -25,7 +25,30 @@ class LPVTest(unittest.TestCase):
         self.assertEqual(y.shape, (1, 10), "y shape incorrect")
         self.assertEqual(ynf.shape, (1, 10), "ynf shape incorrect")
         self.assertEqual(x.shape, (2, 10), "x shape incorrect")
+    
+    def test_is_A_matrix_stable_true(self):
+        A = np.array([
+        [[0.5, 0.3],
+         [0.0, 0.4]],
+        [[0.2, 0.1],
+         [0.0, 0.3]]
+        ]).transpose(1, 2, 0)
+        
+        sys1 = LPV(A, self.C1, self.B1, self.D1)
+        self.assertTrue(sys1.is_A_matrix_stable())
 
+    def test_is_A_matrix_stable_false(self):
+        A = np.array([
+        [[2.0, 1.2],
+         [1.5, 1.0]],
+
+        [[0.0, 0.0],
+         [1.8, 1.3]]
+        ]).transpose(1, 2, 0)
+            
+        sys1 = LPV(A, self.C1, self.B1, self.D1)
+        self.assertFalse(sys1.is_A_matrix_stable())
+    
     def test_isEquivalent_true(self):
         
         self.A1[:, :, 0] = np.array([[0.8, 0.1],
@@ -86,5 +109,3 @@ class LPVTest(unittest.TestCase):
         sys1 = LPV(self.A1, self.C1, self.B1, self.D1)
         sys2 = LPV(self.A2, C2, self.B2, D2)
         self.assertFalse(sys1.isEquivalentTo(sys2,x01,x02))
-
-            
