@@ -63,3 +63,30 @@ def psi_ys_true(w, gam_i, A, G, C, psig):
 
     Psi = C[:, :, gam_i] @ As @ G[:, :, sig_j] * np.sqrt(ps)
     return Psi, ps
+
+def Myu(sig_j, v_j, sig, u_i, gam_i, A, B, C, D, G, psig):
+    """
+    Computes Myu(w) = [Ψ_{u,y}(w), Ψ_{ys}(w)] for a composed word w = [σ_j, v_j, σ, u_i].
+    Parameters:
+        sig_j (int): Input mode index σ_j
+        v_j (List[int]): Switching sequence v_j
+        sig (List[int]): Switching sequence σ
+        u_i (int): Input index u_i
+        gam_i (int): Output mode index γ_i
+        A, B, C, G (np.ndarray): System matrices 
+        D (np.ndarray or None): Direct feedthrough matrix, used if w is empty
+        psig (np.ndarray): Probability vector for switching modes
+    Returns:
+        Myu (np.ndarray): Concatenated Markov vector
+    """
+    w = [sig_j] + v_j + sig + [u_i]
+    Psi_ys, ps = psi_ys_true(w, gam_i, A, G, C, psig)
+    
+    if len(w) == 0:
+        Psi_uy = psi_uy_true(w, gam_i, A, B, C, D)
+    else:
+        weight = np.sqrt(psig[w[0]] * ps)
+        Psi_uy = weight * psi_uy_true(w, gam_i, A, B, C, D)
+
+    Myu = np.hstack([Psi_uy, Psi_ys])
+    return Myu
