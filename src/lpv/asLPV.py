@@ -84,7 +84,7 @@ class asLPV(LPV):
         
         for k in range (Ntot-1):
             for i in range(np_):
-                term_noise = self.K[:,:,1] @ v[:,k]
+                term_noise = self.K[:,:,i] @ v[:,k]
                 x[:, k+1] += (self.A[:, :, i] @ x[:, k] + term_noise) * p[i, k] 
             noise_output = self.F @ v[:,k]
             y[:, k] = self.C @ x[:, k] + noise_output

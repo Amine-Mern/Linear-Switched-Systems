@@ -16,7 +16,7 @@ test-lpv:
 
 graph:
 	@echo Graph 1
-	@python3 -m src.main.graph
+	@python3 -m src.graphs.graphs
 
 run:
 	@echo Executing main

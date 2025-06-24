@@ -2,6 +2,26 @@ import unittest
 import numpy as np
 from src.lpv.asLPV import asLPV
 
+def calculate_v(ny, Ntot):
+        return np.random.randn(ny,Ntot)
+    
+def calculate_psig(p):
+    np_, Ntot = p.shape
+    psig = np.zeros((np_, 1))
+    for i in range(np_):
+        psig[i, 0] = np.var(p[i, :]) + np.mean(p[i, :])**2
+    return psig
+
+def calculate_p(Ntot):
+    p = np.zeros((2,Ntot))
+    
+    p[0,:] = np.ones(Ntot)
+    
+    p[1,:] =  3 * np.random.rand(Ntot) - 1.5
+    
+    return p
+
+
 class asLPVTest(unittest.TestCase):
     
     def setUp(self):
@@ -40,7 +60,7 @@ class asLPVTest(unittest.TestCase):
         self.assertTrue(np.allclose(y,expected_y,rtol = 1e-4, atol = 1e-4))
         self.assertTrue(np.allclose(ynf,expected_ynf,rtol = 1e-4, atol = 1e-4))
         self.assertTrue(np.allclose(x,expected_x,rtol = 1e-4, atol = 1e-4))
-    
+        
     def test_Simulate_Innovation(self):
         #Resulted for MATLAB main_example
         expected_err1 = np.array([[0.9794, -0.2656, -0.5484, -0.0963, -1.3807, -0.7284, 1.8860, -2.9414, 0.9800, -0.2087]])
@@ -57,7 +77,6 @@ class asLPVTest(unittest.TestCase):
         
         self.assertTrue(np.allclose(err1,expected_err1,rtol=1e-4,atol=1e-4))
         self.assertTrue(np.allclose(err,expected_err,rtol=1e-4,atol=1e-4))
-        
     
     def test_isStablyInvertable_True(self):
         self.assertTrue(self.asLPV.isStablyInvertable(self.psig))
@@ -232,5 +251,57 @@ class asLPVTest(unittest.TestCase):
          
         self.assertTrue(np.allclose(Qmin,exp_Qmin,rtol=1e-03, atol=1e-6))
         
+
+    def test_simulate_y_min_sys(self):
+        Ntot = 10
+        half = Ntot//2
+        
+        C = np.array([[10, 0]])
+        as_sys = asLPV(self.A,C,self.K,self.F)
+        
+        y ,ynf,x = as_sys.simulate_y(self.v,self.p)
+        
+        
+        Amin = np.zeros((2, 2, 2))
+        Amin[:, :, 0] = np.array([
+            [0.4007, -0.3996],
+            [-0.1996, 0.0993]
+        ])
+        Amin[:, :, 1] = np.array([
+            [0.1004, -0.1002],
+            [-0.2002, 0.2996]
+        ])
+        
+        Kmin = np.zeros((2, 1, 2))
+        Kmin[:, :, 0] = np.array([[-0.0472], [ 0.0481]])
+        Kmin[:, :, 1] = np.array([[-0.0117], [ 0.0661]])
+        
+        Cmin = np.array([[-10, -0.0117]])
+        as_min_sys = asLPV(Amin,Cmin,Kmin,self.F)
+        
+        as_min_sys, Qmin = as_sys.stochMinimize(self.v,self.p,self.psig)
+        
+        error = as_min_sys.simulate_Innovation(y,self.p)
+        
+        innov_error = error[:,Ntot//2:]
+        
+        #innov_error = np.array([[0.2712, -2.6058, -7.5473, 2.2121, 0.0097]])
+        
+        y2,ynf2,x2 = as_min_sys.simulate_y(innov_error,self.p[:,-Ntot//2:])
+        
+        print("\n")
+        print("y :",y)
+        print("y2 :",y2)
+        print("innov_error",innov_error)
+        print("phalf",self.p[:,-Ntot//2:])
+        print(as_min_sys.A)
+        print(as_min_sys.C)
+        print(as_min_sys.K)
+        print(as_min_sys.F)
+        print(y[0,half:])
+        
+    
+    
+
 if __name__ == '__main__':
     unittest.main()
