@@ -78,14 +78,15 @@ def main(asLPV_sys):
     p_2 = calculate_p_2(Ntot)
     
     y,ynf,x = asLPV_sys.simulate_y(v,p_2)
-    y2,ynf2,x2 = asLPV_sys.simulate_y(innov_error,p_2[:,-half:])
+        
+    y2,ynf2,x2 = as_min_system.simulate_y(innov_error,p_2[:,-half:])
     
-    plt.plot(x_half,y[0,half:],label='Output of S')
+    plt.plot(y[0,half:],label='Output of S')
     
-    plt.plot(x_half,y2[0,:],label='Output of S^m')
+    plt.plot(y2[0,:],label='Output of S^m')
         
     err = y[0,half:] - y2[0, :]
-    plt.plot(x_half, err, label='Error', color ='black')
+    plt.plot(err, label='Error', color ='black')
     
     plt.title('Outputs of S and S^m using mu\'')
     plt.xlabel('Sample index k')
