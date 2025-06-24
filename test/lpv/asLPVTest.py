@@ -249,59 +249,7 @@ class asLPVTest(unittest.TestCase):
         self.assertTrue(np.allclose(K_abs,exp_K_abs,rtol=1e-03, atol=1e-6))
         self.assertTrue(np.allclose(F,exp_F,rtol=1e-03, atol=1e-6))
          
-        self.assertTrue(np.allclose(Qmin,exp_Qmin,rtol=1e-03, atol=1e-6))
-        
-
-    def test_simulate_y_min_sys(self):
-        Ntot = 10
-        half = Ntot//2
-        
-        C = np.array([[10, 0]])
-        as_sys = asLPV(self.A,C,self.K,self.F)
-        
-        y ,ynf,x = as_sys.simulate_y(self.v,self.p)
-        
-        
-        Amin = np.zeros((2, 2, 2))
-        Amin[:, :, 0] = np.array([
-            [0.4007, -0.3996],
-            [-0.1996, 0.0993]
-        ])
-        Amin[:, :, 1] = np.array([
-            [0.1004, -0.1002],
-            [-0.2002, 0.2996]
-        ])
-        
-        Kmin = np.zeros((2, 1, 2))
-        Kmin[:, :, 0] = np.array([[-0.0472], [ 0.0481]])
-        Kmin[:, :, 1] = np.array([[-0.0117], [ 0.0661]])
-        
-        Cmin = np.array([[-10, -0.0117]])
-        as_min_sys = asLPV(Amin,Cmin,Kmin,self.F)
-        
-        as_min_sys, Qmin = as_sys.stochMinimize(self.v,self.p,self.psig)
-        
-        error = as_min_sys.simulate_Innovation(y,self.p)
-        
-        innov_error = error[:,Ntot//2:]
-        
-        #innov_error = np.array([[0.2712, -2.6058, -7.5473, 2.2121, 0.0097]])
-        
-        y2,ynf2,x2 = as_min_sys.simulate_y(innov_error,self.p[:,-Ntot//2:])
-        
-        print("\n")
-        print("y :",y)
-        print("y2 :",y2)
-        print("innov_error",innov_error)
-        print("phalf",self.p[:,-Ntot//2:])
-        print(as_min_sys.A)
-        print(as_min_sys.C)
-        print(as_min_sys.K)
-        print(as_min_sys.F)
-        print(y[0,half:])
-        
-    
-    
+        self.assertTrue(np.allclose(Qmin,exp_Qmin,rtol=1e-03, atol=1e-6))    
 
 if __name__ == '__main__':
     unittest.main()
