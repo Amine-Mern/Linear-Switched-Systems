@@ -127,6 +127,7 @@ class LPV:
         Returns :
         - Res : Innovation error noise (if used on as-LPV (F @ v(t)))
                  : Static contribution of the input to(the output (if used on dLPV (D @ u(t)))
+        TESTED
         """
         Ntot = y.shape[1]
         np_ = self.np
@@ -148,6 +149,7 @@ class LPV:
 
         Returns : Bool
                   True if stable, False otherwise
+        TESTED
         """
         n = self.A.shape[0]
         np_ = self.A.shape[2]
