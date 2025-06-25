@@ -15,6 +15,7 @@ def psi_uy_true(w, gam_i, A, B, C, D=None):
     Returns:
         Psi (np.ndarray): Ψ_{u,y}(w) ∈ R^{ny × nu}
     """
+    
     if len(w) == 0:
         if D is None:
             raise ValueError("D must be provided if w is empty.")
@@ -26,7 +27,7 @@ def psi_uy_true(w, gam_i, A, B, C, D=None):
     As = np.eye(nx)
     for i in s:
         As = A[:, :, i] @ As
-    Psi = C[:,:, gam_i] @ As @ B[:,:, sig_j]
+    Psi = C[:,:, 1] @ As @ B[:,:, sig_j]
     return Psi
 
 
@@ -90,3 +91,4 @@ def Myu(sig_j, v_j, sig, u_i, gam_i, A, B, C, D, G, psig):
 
     Myu = np.hstack([Psi_uy, Psi_ys])
     return Myu
+
