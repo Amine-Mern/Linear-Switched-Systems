@@ -1,7 +1,7 @@
 import numpy as np
 from numpy import eye
 
-def psi_uy_true(w, gam_i, A, B, C, D=None):
+def psi_uy_true(w, A, B, C, D=None):
     """
     Computes the Markov parameter Ψ_{u,y}(w) for a given word w and output index gam_i.
     
@@ -31,7 +31,7 @@ def psi_uy_true(w, gam_i, A, B, C, D=None):
     return Psi
 
 
-def psi_ys_true(w, gam_i, A, G, C, psig):
+def psi_ys_true(w, A, G, C, psig):
     """
     Computes the Markov parameter Ψ_{ys}(w) for a given word w and output index gam_i,
     along with the associated path probability product.
@@ -62,10 +62,10 @@ def psi_ys_true(w, gam_i, A, G, C, psig):
         As = A[:, :, i] @ As
         ps *= psig[i]
 
-    Psi = C[:, :, gam_i] @ As @ G[:, :, sig_j] * np.sqrt(ps)
+    Psi = C[:, :,1] @ As @ G[:, :, sig_j] * np.sqrt(ps)
     return Psi, ps
 
-def Myu(sig_j, v_j, sig, u_i, gam_i, A, B, C, D, G, psig):
+def Myu(sig_j, v_j, sig, u_i, A, B, C, D, G, psig):
     """
     Computes Myu(w) = [Ψ_{u,y}(w), Ψ_{ys}(w)] for a composed word w = [σ_j, v_j, σ, u_i].
     Parameters:
@@ -81,13 +81,13 @@ def Myu(sig_j, v_j, sig, u_i, gam_i, A, B, C, D, G, psig):
         Myu (np.ndarray): Concatenated Markov vector
     """
     w = [sig_j] + v_j + sig + [u_i]
-    Psi_ys, ps = psi_ys_true(w, gam_i, A, G, C, psig)
+    Psi_ys, ps = psi_ys_true(w, A, G, C, psig)
     
     if len(w) == 0:
-        Psi_uy = psi_uy_true(w, gam_i, A, B, C, D)
+        Psi_uy = psi_uy_true(w, A, B, C, D)
     else:
         weight = np.sqrt(psig[w[0]] * ps)
-        Psi_uy = weight * psi_uy_true(w, gam_i, A, B, C, D)
+        Psi_uy = weight * psi_uy_true(w, A, B, C, D)
 
     Myu = np.hstack([Psi_uy, Psi_ys])
     return Myu
