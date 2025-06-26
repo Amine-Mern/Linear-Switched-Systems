@@ -1,4 +1,6 @@
 import numpy as np
+from src.lpv.dLPV import dLPV
+import src.lpv.utils
 
 class HoKalmanIdentifier:
     """
@@ -71,3 +73,12 @@ class HoKalmanIdentifier:
             C[:, :, i] = Hkb[i]
 
         return A, B, C
+    
+    @staticmethod
+    def Hokalman_to_dLPV(A,B,C,D,A_hok, B_hok, C_hok):
+        D_hok = psi_uy_true([], A, B, C, D)
+        B_hok = B_hok[:, :nu, :]  
+        return dLPV(A_hok, C_hok, B_hok, D_hok)
+    
+    
+        
