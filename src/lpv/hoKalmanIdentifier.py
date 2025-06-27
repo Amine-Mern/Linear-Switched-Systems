@@ -1,21 +1,183 @@
 import numpy as np
 from src.lpv.dLPV import dLPV
-import src.lpv.utils
+
+from src.lpv.modeStrategy.strategy_psi import strategy_psi
+from src.lpv.modeStrategy.strategy_Myu import strategy_Myu
 
 class HoKalmanIdentifier:
     """
-    Class implementing the Ho-Kalman algorithm for identification of
-    Linear Parameter Varying.
+    Class implementing the Ho-Kalman and the TrueHokalmanBase algorithms for identification of Linear Parameter Varying.
+     
+    Attributs
+    --------
+    A : np.ndarray
+        3D array representing the state transition matrices.
+
+    B : np.ndarray
+        3D array representing the input matrices.
     
-    The algorithm extracts state-space matrices (A, B, C) from
-    block Hankel matrices constructed from Markov parameters.
+    C : np.ndarray
+        2D array representing the output matrix.
     
+    D : np.ndarray
+        2D array representing the feedthrough matrix.
+
+    base : Tuple containing two np.ndarray such as base = (alpha,beta)
+        alpha : word index set
+        beta : word index set
+
+    mode : An instance of the modeStrategy class
+        it will be used for changing how M(y,u) is calculated.
+
     Methods
     -------
+    TrueHoKalamanBase()
+
+    Compute_Hab()
+
+    Compute_Habk()
+
+    Compute_Hak()
+
+    Compute_Hkb()
+
     identify(Hab, Habk_list, Hak_list, Hkb_list)
         Perform the Ho-Kalman identification step.
     
     """
+    def __init__(A,B,C,D,base):
+        self.base = base
+        self.alpha = base[0]
+        self.beta = base[1]
+
+        self.A = A
+        self.B = B
+        self.C = C
+        self.D = D
+        mode = 
+
+    def deduce_w_from_base_Hab_Habk(i,j):
+        """
+        Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Habk and Habk
+        
+        i : int
+            Arbitrary index
+
+        j : int
+            Arbitrary index
+
+        Returns :
+            w :
+
+            k_i :
+
+            l_j :
+
+        """
+        sig = []
+        sig_j = beta[j,0]
+        v_j = beta[j,1]
+        u_i = alpha[i,0]
+        k_i = alpha[i,2]
+        l_j = beta[i,2]
+
+        w = [sig_j,v_j,sig,u_i]
+        return w,k_i,l_j
+
+    def deduce_w_from_base_Hak(i,j):
+        """
+        Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hak
+        
+        i : int
+            Arbitrary index
+
+        j : int
+            Arbitrary index
+
+        Returns :
+            w :
+            k_i :
+            l_j :
+
+        """
+        sig_j = []
+        v_j = []
+        u_i = alpha[i,1]
+
+        k_i = alpha[i,2]
+        l_j = j
+        
+        w = [sig_j,v_j,u_i]
+        return w,k_i,l_j
+
+    def deduce_w_from_base_Hkb(i,j):
+        """
+        Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hak
+        
+        i : int
+            Arbitrary index
+
+        j : int
+            Arbitrary index
+
+        """
+        sig_j = beta[j,0]
+        v_j = beta[j,1]
+        u_i = []
+        
+        k_i = i
+        l_j = beta[j,2]
+
+        w = [sig_j,v_j,u_i]
+        return w,k_i,l_j
+        
+
+    def compute_Hab():
+        """
+        Computes the first sub-hankel matrice used for an LPV-SS model
+        """
+        sz_alpha,sz_beta = alpha.shape[0],beta.shape[0]
+
+        Hab = np.zeros(sz_alpha,sz_beta)
+        for i in range(0,sz_alpha):
+            for j in range(0,sz_beta):
+                w,k_i,l_j = deduce_w_from_base_Hab_Habk(i,j)
+                #M = mode.buildM() discuss about G matrix
+                Hab[i,j] = M[k_i,l_j]
+
+        return Hab
+
+
+    def compute_Habk():
+        """
+        Computes the second sub-hankel matrice used for an LPV-SS model
+        """
+
+    def compute_Hak():
+        """    
+        Computes the third sub-hankel matrice used for an LPV-SS model
+        """
+
+    def compute_Hkb():
+        """
+        Computes the last sub-hankel matrice used for an LPV-SS model
+        """
+
+    def TrueHoKalmanBase():
+        """
+        Computes the Sub-Hankel matrices used for an LPV-SS model
+        (Hab,Habk,Hak,Hkb)
+
+        Returns :
+        the Sub-Hankel matrices : (Hab,Habk,Hak,Hkb)
+
+        """
+       Hab = self.compute_Hab()
+       Habk = self.compute_Habk()
+       Hak = self.compute_Hak()
+       Hkb = self.compute_Hkb()
+
+       return (Hab,Habk,Hak,Hkb)
     
     @staticmethod
     def identify(Hab, Habk, Hak, Hkb):

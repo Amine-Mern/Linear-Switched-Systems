@@ -19,6 +19,7 @@ def deduce_from_base_Hab(base,i,j):
 def compute_Hab(A,B,C,D,base):
     sz_alpha = base[0].shape[0] #size alpha
     sz_beta = base[1].shape[0] #size beta
+    
     Hab = np.zeros(sz_alpha,sz_beta)
     for i in range(0,sz_alpha):
         for j in range(0,sz_beta):
@@ -30,9 +31,12 @@ def compute_Hab(A,B,C,D,base):
 
 def compute_Habk(A,B,C,D,base):
 
+
 def compute_Hak(A,B,C,D,base):
+    pass
 
 def compute_Hkb(A,B,C,D,base):
+    pass
 
 def TrueHoKalmanBase_Det(A,B,C,D,base):
     """
