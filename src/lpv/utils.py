@@ -65,7 +65,7 @@ def psi_ys_true(w, A, G, C, psig):
     Psi = C[:, :,1] @ As @ G[:, :, sig_j] * np.sqrt(ps)
     return Psi, ps
 
-def Myu(sig_j, v_j, sig, u_i, A, B, C, D, G, psig):
+def Myu(w, A, B, C, D, G, psig):
     """
     Computes Myu(w) = [Ψ_{u,y}(w), Ψ_{ys}(w)] for a composed word w = [σ_j, v_j, σ, u_i].
     Parameters:
@@ -80,7 +80,6 @@ def Myu(sig_j, v_j, sig, u_i, A, B, C, D, G, psig):
     Returns:
         Myu (np.ndarray): Concatenated Markov vector
     """
-    w = [sig_j] + v_j + sig + [u_i]
     Psi_ys, ps = psi_ys_true(w, A, G, C, psig)
     
     if len(w) == 0:
@@ -91,4 +90,49 @@ def Myu(sig_j, v_j, sig, u_i, A, B, C, D, G, psig):
 
     Myu = np.hstack([Psi_uy, Psi_ys])
     return Myu
+
+def compute_Lambda_ydyd(sigma_w, sigma, A, B, C, D, Qu, psig, P_sigma):
+    """
+    Calculate Lambda^{yd, yd}_{sigma_w, sigma} according to the paper :
+        Λ_{σ_w}^{y^d, y^d} = (1 / p_{σ_w}) * C^d * A_w^d * (A_σ^d * P_σ * (C^d)^T + B_σ^d * Q_u * (D^d)^T)
+        
+    Parameters:
+            - sigma_w : int
+                        Mode index sigma_w
+            - sigma : int
+                      Mode index sigma
+            - A : np.ndarray
+                  3D matrix
+            - B : np.ndarray
+                  3D matrix
+            - C : np.ndarray
+                  3D matrix
+            - D : np.ndarray
+                  3D matrix
+            - Qu : np.ndarray
+                   Input covariance matrix Q_u
+            - psig : list[float]
+                     Mode probability vector p_sigma
+            - P_sigma : np.ndarray
+                        3D matrix
+    Returns:
+        Lambda_ydyd : np.ndarray
+            The computed matrix
+    """
+    ps_w = psig[sigma_w]
+    
+    C_d = C[sigma]                  
+    A_w_d = A[sigma_w]              
+    A_sigma_d = A[sigma]            
+    P_sigma = P_sigma[sigma]        
+    B_sigma_d = B[sigma]            
+    D_d = D[sigma]                  
+    
+    term1 = (1 / ps_w) * C_d @ A_w_d 
+    term2 = A_sigma_d @ P_sigma @ C_d.T
+    term3 = B_sigma_d @ Qu @ D_d.T
+
+    Lambda_ydyd = term1 *(term2 + term3)
+    return Lambda_ydyd
+
 
