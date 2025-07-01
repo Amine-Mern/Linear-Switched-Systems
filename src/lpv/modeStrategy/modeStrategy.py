@@ -5,6 +5,6 @@ class modeStrategy(ABC) :
     Abstract class (used like an interface) representing the mode with what TrueHoKalmanBase will construct M
     """
     @abstractmethod
-    def build_M(self):
+    def build_M(self,params):
         pass
     

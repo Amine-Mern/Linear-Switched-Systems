@@ -1,5 +1,6 @@
 import numpy as np
 from src.lpv.dLPV import dLPV
+from src.lpv.asLPV import asLPV
 
 from src.lpv.modeStrategy.strategy_psi import strategy_psi
 from src.lpv.modeStrategy.strategy_Myu import strategy_Myu
@@ -32,6 +33,8 @@ class HoKalmanIdentifier:
     Methods
     -------
     TrueHoKalamanBase()
+    
+    switchMode()
 
     Compute_Hab()
 
@@ -45,7 +48,7 @@ class HoKalmanIdentifier:
         Perform the Ho-Kalman identification step.
     
     """
-    def __init__(A,B,C,D,base):
+    def __init__(A,B,C,D,K,Q,base):
         self.base = base
         self.alpha = base[0]
         self.beta = base[1]
@@ -54,11 +57,27 @@ class HoKalmanIdentifier:
         self.B = B
         self.C = C
         self.D = D
-        mode = 
+        self.K = K
+        self.Q = Q
+        self.mode = strategy_psi()
 
-    def deduce_w_from_base_Hab_Habk(i,j):
+        # Defining the stochastic part to calculate G_true
+        self.as_intern_sys = asLPV(A,C,K,F)
+
+    def switchMode():
         """
-        Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Habk and Habk
+        Switches the current strategy to the other :
+            - if the current strategy is strategy_psi => strategy_Myu
+            - if the curent strategy is strategy_Myu => strategy_Psi
+        """
+        if (isinstance(self.mode, strategy_psi)):
+            self.mode = strategy_Myu()
+        else:
+            self.mode = strategy_Psi()
+
+    def deduce_w_from_base_Hab(i,j):
+        """
+        Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hab
         
         i : int
             Arbitrary index
@@ -66,25 +85,49 @@ class HoKalmanIdentifier:
         j : int
             Arbitrary index
 
-        Returns :
-            w :
-
-            k_i :
-
-            l_j :
+        Returns : A Tuple containing :  
+            w the set of words
+            k_i, l_j indexs
 
         """
+
         sig = []
-        sig_j = beta[j,0]
-        v_j = beta[j,1]
-        u_i = alpha[i,0]
-        k_i = alpha[i,2]
-        l_j = beta[i,2]
+
+        sig_j = self.beta[j,0]
+        v_j = self.beta[j,1]
+        u_i = self.alpha[i,0]
+        k_i = self.alpha[i,2]
+        l_j = self.beta[i,2]
 
         w = [sig_j,v_j,sig,u_i]
         return w,k_i,l_j
 
-    def deduce_w_from_base_Hak(i,j):
+    def deduce_w_from_base_Habk(i,j,sig):
+        """
+        Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hab
+        
+        i : int
+            Arbitrary index
+
+        j : int
+            Arbitrary index
+
+        Returns : A Tuple containing :  
+            w the set of words
+            k_i, l_j indexs
+
+        """
+        
+        sig_j = self.beta[j,0]
+        v_j = self.beta[j,1]
+        u_i = self.alpha[i,0]
+        k_i = self.alpha[i,2]
+        l_j = self.beta[i,2]
+
+        w = [sig_j,v_j,sig+1,u_i] #Added 1 to sig for calculation purposes in Myu
+        return w,k_i,l_j
+
+    def deduce_w_from_base_Hak(i,j,sig):
         """
         Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hak
         
@@ -94,20 +137,19 @@ class HoKalmanIdentifier:
         j : int
             Arbitrary index
 
-        Returns :
-            w :
-            k_i :
-            l_j :
+        Returns : A Tuple containing :  
+            w the set of words 
+            k_i, l_j indexs
 
         """
         sig_j = []
         v_j = []
-        u_i = alpha[i,1]
+        u_i = self.alpha[i,1]
 
-        k_i = alpha[i,2]
+        k_i = self.alpha[i,2]
         l_j = j
         
-        w = [sig_j,v_j,u_i]
+        w = [sig_j,v_j,sig+1,u_i]
         return w,k_i,l_j
 
     def deduce_w_from_base_Hkb(i,j):
@@ -120,50 +162,106 @@ class HoKalmanIdentifier:
         j : int
             Arbitrary index
 
+        Returns : A Tuple containing :  
+            w the set of words 
+            k_i, l_j indexs
+
         """
-        sig_j = beta[j,0]
-        v_j = beta[j,1]
+        sig_j = self.beta[j,0]
+        v_j = self.beta[j,1]
         u_i = []
         
         k_i = i
-        l_j = beta[j,2]
+        l_j = self.beta[j,2]
 
         w = [sig_j,v_j,u_i]
         return w,k_i,l_j
         
 
-    def compute_Hab():
+    def compute_Hab(psig,G):
         """
         Computes the first sub-hankel matrice used for an LPV-SS model
         """
-        sz_alpha,sz_beta = alpha.shape[0],beta.shape[0]
+        sz_alpha,sz_beta = self.alpha.shape[0],self.beta.shape[0]
 
         Hab = np.zeros(sz_alpha,sz_beta)
         for i in range(0,sz_alpha):
             for j in range(0,sz_beta):
-                w,k_i,l_j = deduce_w_from_base_Hab_Habk(i,j)
-                #M = mode.buildM() discuss about G matrix
+                w,k_i,l_j = deduce_w_from_base_Hab(i,j)
+                params = [w,self.A,self.B,self.C,self.D,G,psig]
+                M = mode.buildM(params)
                 Hab[i,j] = M[k_i,l_j]
 
         return Hab
 
 
-    def compute_Habk():
+    def compute_Habk(psig,G):
         """
         Computes the second sub-hankel matrice used for an LPV-SS model
         """
+        sz_alpha, sz_beta = self.alpha.shape[0],self.beta.shape[0]
+        
+        np_ = self.A.shape[2]
+        
+        Habk = np.zeros((sz_alpha, sz_beta, np_))
+        for sig in range(0,np_):    
+            Habqtmp = np.zeros(sz_alpha,sz_beta)
+            for i in range(0,sz_alpha):
+                for j in range(0,sz_beta):
+                    w,k_i,l_j = deduce_w_from_base_Habk(i,j,sig)
+                    params = [w,self.A,self.B,self.C,self.D,G,psig]
+                    M = mode.buildM(params)
+                    Habqtmp[i,j] = M[k_i,l_j]
+            Habk[:,:,sig] = Habqtmp
 
-    def compute_Hak():
+        return Habk
+
+
+    def compute_Hak(psig,G):
         """    
         Computes the third sub-hankel matrice used for an LPV-SS model
         """
+        nu = self.B.shape[1] 
+        ny = self.C.shape[0]
+        np_ = A.shape[2]
+        sz_alpha = self.alpha.shape[0]
 
-    def compute_Hkb():
+        Hak = np.zeros((sz_alpha,nu+ny,np_))
+        for sig in range(0,np_):
+            Hakqtmp = np.zeros(sz_alpha,nu)
+            for i in range(0,sz_alpha):
+                for j in range(0,nu+ny):
+                    w,k_i,l_j = deduce_w_from_base_Hak(i,j,sig)
+                    params = [w,self.A,self.B,self.C,self.D,G,psig]
+                    M = mode.buildM(params)
+                    Hakqtmp[i,j] = M[k_i,l_j]
+            Hak[:,:,sig] = Hakqtmp
+
+        return Hak 
+
+    def compute_Hkb(psig,G):
         """
         Computes the last sub-hankel matrice used for an LPV-SS model
         """
 
-    def TrueHoKalmanBase():
+        ny = self.C.shape[0]
+        np_c = self.C.shape[2]
+
+        sz_beta = self.alpha.shape[0]
+
+        for sig in range(0,np_c):
+            Hkbqtmp = np.zeros((ny,sz_beta))
+            for i in range(0,ny):
+                for j in range(0,sz_beta):
+                    w,k_i,l_j = deduce_w_from_base_Hkb(i,j)
+                    params = [w,self.A,self.B,self.C,self.D,G,psig]
+                    M = mode.buildM(params)
+                    Hkbqtmp[i,j] = M[k_i,l_j]
+            Hkb[:,:,sig] = Hkbqtmp
+        return Hkb
+
+
+    def TrueHoKalmanBase(psig):
         """
         Computes the Sub-Hankel matrices used for an LPV-SS model
         (Hab,Habk,Hak,Hkb)
@@ -172,12 +270,15 @@ class HoKalmanIdentifier:
         the Sub-Hankel matrices : (Hab,Habk,Hak,Hkb)
 
         """
-       Hab = self.compute_Hab()
-       Habk = self.compute_Habk()
-       Hak = self.compute_Hak()
-       Hkb = self.compute_Hkb()
 
-       return (Hab,Habk,Hak,Hkb)
+        P = self.as_intern_sys.compute_Pi(psig,self.Q)
+        G = self.as_intern_sys.compute_Gi(psig,self.Q,P)
+        Hab = self.compute_Hab(psig,G)
+        Habk = self.compute_Habk(psig,G)
+        Hak = self.compute_Hak(psig,G)
+        Hkb = self.compute_Hkb(psig,G)
+
+        return (Hab,Habk,Hak,Hkb)
     
     @staticmethod
     def identify(Hab, Habk, Hak, Hkb):
@@ -188,7 +289,7 @@ class HoKalmanIdentifier:
         ----------
         Hab : np.ndarray, shape (nx, nx)
               Base Hankel matrix H_M (indexed by past and future words).
-        
+        https://store.steampowered.com/wishlist/profiles/76561198075477955/
         Habk : list of np.ndarray, each shape (nx, nx)
                List of shifted Hankel matrices H_M^shifted, one per mode/scheduling signal sigma.
         
