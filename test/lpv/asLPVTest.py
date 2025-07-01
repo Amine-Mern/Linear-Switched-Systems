@@ -152,7 +152,7 @@ class asLPVTest(unittest.TestCase):
         Pi = self.asLPV.compute_Pi(self.psig,Qi)
         
         ##Compute_Gi
-        Gi = self.asLPV.compute_Gi(self.psig,self.p,Qi,Pi)
+        Gi = self.asLPV.compute_Gi(self.psig,Qi,Pi)
         
         ## Expected :
         Expected = np.zeros((2, 1, 2)) 

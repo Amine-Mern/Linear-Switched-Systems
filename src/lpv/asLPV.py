@@ -172,7 +172,7 @@ class asLPV(LPV):
         
         return P_true_new_rounded
     
-    def compute_Gi(self,psig,p,Q_true,P_true_new):
+    def compute_Gi(self,psig, Q_true,P_true_new):
         """
         Computes the matrix G_i used in the innovation form of the LPV system.
         TESTED
@@ -193,7 +193,7 @@ class asLPV(LPV):
         """
         Q_true = self.compute_Qi(v,p)
         P_true = self.compute_Pi(psig,Q_true)
-        G_true = self.compute_Gi(psig,p,Q_true,P_true)
+        G_true = self.compute_Gi(psig,Q_true,P_true)
         
         # Matrix we wish to calculate
         T_sig = np.zeros((self.ny,self.ny,self.np))
