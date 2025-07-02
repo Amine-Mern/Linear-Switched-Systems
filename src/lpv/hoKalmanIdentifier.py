@@ -76,7 +76,7 @@ class HoKalmanIdentifier:
         else:
             self.mode = strategy_Psi()
 
-    def deduce_w_from_base_Hab(i,j):
+    def deduce_w_from_base_Hab(self,i,j):
         """
         Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hab
         
@@ -103,7 +103,7 @@ class HoKalmanIdentifier:
         w = [sig_j,v_j,sig,u_i]
         return w,k_i,l_j
 
-    def deduce_w_from_base_Habk(i,j,sig):
+    def deduce_w_from_base_Habk(self,i,j,sig):
         """
         Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hab
         
@@ -128,7 +128,7 @@ class HoKalmanIdentifier:
         w = [sig_j,v_j,sig+1,u_i] #Added 1 to sig for calculation purposes in Myu
         return w,k_i,l_j
 
-    def deduce_w_from_base_Hak(i,j,sig):
+    def deduce_w_from_base_Hak(self,i,j,sig):
         """
         Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hak
         
@@ -153,7 +153,7 @@ class HoKalmanIdentifier:
         w = [sig_j,v_j,sig+1,u_i]
         return w,k_i,l_j
 
-    def deduce_w_from_base_Hkb(i,j):
+    def deduce_w_from_base_Hkb(self,i,j):
         """
         Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hak
         
@@ -179,24 +179,25 @@ class HoKalmanIdentifier:
         return w,k_i,l_j
         
 
-    def compute_Hab(psig,G):
+    def compute_Hab(self,psig,G):
         """
         Computes the first sub-hankel matrice used for an LPV-SS model
         """
         sz_alpha,sz_beta = self.alpha.shape[0],self.beta.shape[0]
 
-        Hab = np.zeros(sz_alpha,sz_beta)
+        Hab = np.zeros((sz_alpha,sz_beta))
         for i in range(0,sz_alpha):
             for j in range(0,sz_beta):
-                w,k_i,l_j = deduce_w_from_base_Hab(i,j)
+                print(i,j)
+                w,k_i,l_j = self.deduce_w_from_base_Hab(i,j)
                 params = [w,self.A,self.B,self.C,self.D,G,psig]
-                M = mode.buildM(params)
+                M = self.mode.build_M(params)
                 Hab[i,j] = M[k_i,l_j]
 
         return Hab
 
 
-    def compute_Habk(psig,G):
+    def compute_Habk(self,psig,G):
         """
         Computes the second sub-hankel matrice used for an LPV-SS model
         """
@@ -209,16 +210,16 @@ class HoKalmanIdentifier:
             Habqtmp = np.zeros(sz_alpha,sz_beta)
             for i in range(0,sz_alpha):
                 for j in range(0,sz_beta):
-                    w,k_i,l_j = deduce_w_from_base_Habk(i,j,sig)
+                    w,k_i,l_j = self.deduce_w_from_base_Habk(i,j,sig)
                     params = [w,self.A,self.B,self.C,self.D,G,psig]
-                    M = mode.buildM(params)
+                    M = self.mode.build_M(params)
                     Habqtmp[i,j] = M[k_i,l_j]
             Habk[:,:,sig] = Habqtmp
 
         return Habk
 
 
-    def compute_Hak(psig,G):
+    def compute_Hak(self,psig,G):
         """    
         Computes the third sub-hankel matrice used for an LPV-SS model
         """
@@ -232,15 +233,15 @@ class HoKalmanIdentifier:
             Hakqtmp = np.zeros(sz_alpha,nu)
             for i in range(0,sz_alpha):
                 for j in range(0,nu+ny):
-                    w,k_i,l_j = deduce_w_from_base_Hak(i,j,sig)
+                    w,k_i,l_j = self.deduce_w_from_base_Hak(i,j,sig)
                     params = [w,self.A,self.B,self.C,self.D,G,psig]
-                    M = mode.buildM(params)
+                    M = self.mode.build_M(params)
                     Hakqtmp[i,j] = M[k_i,l_j]
             Hak[:,:,sig] = Hakqtmp
 
         return Hak 
 
-    def compute_Hkb(psig,G):
+    def compute_Hkb(self,psig,G):
         """
         Computes the last sub-hankel matrice used for an LPV-SS model
         """
@@ -254,15 +255,15 @@ class HoKalmanIdentifier:
             Hkbqtmp = np.zeros((ny,sz_beta))
             for i in range(0,ny):
                 for j in range(0,sz_beta):
-                    w,k_i,l_j = deduce_w_from_base_Hkb(i,j)
+                    w,k_i,l_j = self.deduce_w_from_base_Hkb(i,j)
                     params = [w,self.A,self.B,self.C,self.D,G,psig]
-                    M = mode.buildM(params)
+                    M = self.mode.build_M(params)
                     Hkbqtmp[i,j] = M[k_i,l_j]
             Hkb[:,:,sig] = Hkbqtmp
         return Hkb
 
 
-    def TrueHoKalmanBase(psig):
+    def TrueHoKalmanBase(self,psig):
         """
         Computes the Sub-Hankel matrices used for an LPV-SS model
         (Hab,Habk,Hak,Hkb)
@@ -290,7 +291,6 @@ class HoKalmanIdentifier:
         ----------
         Hab : np.ndarray, shape (nx, nx)
               Base Hankel matrix H_M (indexed by past and future words).
-        https://store.steampowered.com/wishlist/profiles/76561198075477955/
         Habk : list of np.ndarray, each shape (nx, nx)
                List of shifted Hankel matrices H_M^shifted, one per mode/scheduling signal sigma.
         
