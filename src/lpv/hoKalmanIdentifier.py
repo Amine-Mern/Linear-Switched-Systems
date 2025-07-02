@@ -2,8 +2,8 @@ import numpy as np
 from src.lpv.dLPV import dLPV
 from src.lpv.asLPV import asLPV
 
-from src.lpv.modeStrategy.strategy_psi import strategy_psi
-from src.lpv.modeStrategy.strategy_Myu import strategy_Myu
+from src.lpv.mode.strategy_psi import strategy_psi
+from src.lpv.mode.strategy_Myu import strategy_Myu
 
 class HoKalmanIdentifier:
     """
@@ -48,7 +48,7 @@ class HoKalmanIdentifier:
         Perform the Ho-Kalman identification step.
     
     """
-    def __init__(A,B,C,D,K,Q,base):
+    def __init__(self,A,B,C,D,K,Q,base):
         self.base = base
         self.alpha = base[0]
         self.beta = base[1]
@@ -59,12 +59,13 @@ class HoKalmanIdentifier:
         self.D = D
         self.K = K
         self.Q = Q
+        self.F = np.eye(1)
         self.mode = strategy_psi()
 
         # Defining the stochastic part to calculate G_true
-        self.as_intern_sys = asLPV(A,C,K,F)
+        self.as_intern_sys = asLPV(A,C,K,self.F)
 
-    def switchMode():
+    def switchMode(self):
         """
         Switches the current strategy to the other :
             - if the current strategy is strategy_psi => strategy_Myu

@@ -1,4 +1,5 @@
 from src.lpv.utils import Myu
+from src.lpv.mode.modeStrategy import modeStrategy
 
 class strategy_Myu(modeStrategy):
     """

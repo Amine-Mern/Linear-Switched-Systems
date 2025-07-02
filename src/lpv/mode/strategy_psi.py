@@ -1,4 +1,5 @@
 from src.lpv.utils import psi_uy_true
+from src.lpv.mode.modeStrategy import modeStrategy
 
 class strategy_psi(modeStrategy):
     """
