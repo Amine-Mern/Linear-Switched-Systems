@@ -27,7 +27,7 @@ def psi_uy_true(w, A, B, C, D=None):
     As = np.eye(nx)
     for i in s:
         As = A[:, :, i] @ As
-    Psi = C[:,:, 1] @ As @ B[:,:, sig_j]
+    Psi = C[:,:, 0] @ As @ B[:,:, sig_j]
     return Psi
 
 
@@ -62,7 +62,7 @@ def psi_ys_true(w, A, G, C, psig):
         As = A[:, :, i] @ As
         ps *= psig[i]
 
-    Psi = C[:, :,1] @ As @ G[:, :, sig_j] * np.sqrt(ps)
+    Psi = C[:, :,0] @ As @ G[:, :, sig_j] * np.sqrt(ps)
     return Psi, ps
 
 def Myu(w, A, B, C, D, G, psig):
