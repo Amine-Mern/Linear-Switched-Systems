@@ -5,6 +5,32 @@ from src.lpv.asLPV import asLPV
 from src.lpv.mode.strategy_psi import strategy_psi
 from src.lpv.mode.strategy_Myu import strategy_Myu
 
+def wrap_func(x):
+    if isinstance(x,int):
+        return [x]
+    elif (x == []):
+        return []
+    else:
+        return x
+
+def flatten_w(w):
+
+    sig_j,v_j,sig,u_i = w[0],w[1],w[2],w[3]
+
+    sig_j = wrap_func(sig_j)
+    sig = wrap_func(sig)
+    v_j = wrap_func(v_j)
+    u_i = wrap_func(u_i)
+
+    w = [np.array(sig_j),np.array(v_j),np.array(sig),np.array(u_i)]
+    
+    w = np.concatenate(w)
+    w = w.tolist()
+    w = [int(i) for i in w]  
+    
+    return w
+
+
 class HoKalmanIdentifier:
     """
     Class implementing the Ho-Kalman and the TrueHokalmanBase algorithms for identification of Linear Parameter Varying.
@@ -96,11 +122,14 @@ class HoKalmanIdentifier:
 
         sig_j = self.beta[j,0]
         v_j = self.beta[j,1]
-        u_i = self.alpha[i,0]
+        u_i = self.alpha[i,1]
         k_i = self.alpha[i,2]
         l_j = self.beta[i,2]
-
+          
         w = [sig_j,v_j,sig,u_i]
+        
+        w = flatten_w(w)
+
         return w,k_i,l_j
 
     def deduce_w_from_base_Habk(self,i,j,sig):
@@ -121,11 +150,14 @@ class HoKalmanIdentifier:
         
         sig_j = self.beta[j,0]
         v_j = self.beta[j,1]
-        u_i = self.alpha[i,0]
+        u_i = self.alpha[i,1]
         k_i = self.alpha[i,2]
         l_j = self.beta[i,2]
 
-        w = [sig_j,v_j,sig+1,u_i] #Added 1 to sig for calculation purposes in Myu
+        w = [sig_j,v_j,sig,u_i]
+        
+        w = flatten_w(w)
+
         return w,k_i,l_j
 
     def deduce_w_from_base_Hak(self,i,j,sig):
@@ -150,7 +182,10 @@ class HoKalmanIdentifier:
         k_i = self.alpha[i,2]
         l_j = j
         
-        w = [sig_j,v_j,sig+1,u_i]
+        w = [sig_j,v_j,sig,u_i]
+        
+        w = flatten_w(w)
+        
         return w,k_i,l_j
 
     def deduce_w_from_base_Hkb(self,i,j):
@@ -170,12 +205,16 @@ class HoKalmanIdentifier:
         """
         sig_j = self.beta[j,0]
         v_j = self.beta[j,1]
+        sig = []
         u_i = []
         
         k_i = i
         l_j = self.beta[j,2]
 
-        w = [sig_j,v_j,u_i]
+        w = [sig_j,v_j,sig,u_i]
+        
+        w = flatten_w(w)
+
         return w,k_i,l_j
         
 
@@ -188,13 +227,11 @@ class HoKalmanIdentifier:
         Hab = np.zeros((sz_alpha,sz_beta))
         for i in range(0,sz_alpha):
             for j in range(0,sz_beta):
-                print(i,j)
                 w,k_i,l_j = self.deduce_w_from_base_Hab(i,j)
                 params = [w,self.A,self.B,self.C,self.D,G,psig]
                 M = self.mode.build_M(params)
                 Hab[i,j] = M[k_i,l_j]
-
-        return Hab
+        return np.round(Hab,4)
 
 
     def compute_Habk(self,psig,G):
@@ -207,7 +244,7 @@ class HoKalmanIdentifier:
         
         Habk = np.zeros((sz_alpha, sz_beta, np_))
         for sig in range(0,np_):    
-            Habqtmp = np.zeros(sz_alpha,sz_beta)
+            Habqtmp = np.zeros((sz_alpha,sz_beta))
             for i in range(0,sz_alpha):
                 for j in range(0,sz_beta):
                     w,k_i,l_j = self.deduce_w_from_base_Habk(i,j,sig)
@@ -215,8 +252,7 @@ class HoKalmanIdentifier:
                     M = self.mode.build_M(params)
                     Habqtmp[i,j] = M[k_i,l_j]
             Habk[:,:,sig] = Habqtmp
-
-        return Habk
+        return np.round(Habk,4)
 
 
     def compute_Hak(self,psig,G):
@@ -225,21 +261,21 @@ class HoKalmanIdentifier:
         """
         nu = self.B.shape[1] 
         ny = self.C.shape[0]
-        np_ = A.shape[2]
+        np_ = self.A.shape[2]
         sz_alpha = self.alpha.shape[0]
 
-        Hak = np.zeros((sz_alpha,nu+ny,np_))
+        Hak = np.zeros((sz_alpha,nu,np_))
         for sig in range(0,np_):
-            Hakqtmp = np.zeros(sz_alpha,nu)
+            Hakqtmp = np.zeros((sz_alpha,nu))
             for i in range(0,sz_alpha):
-                for j in range(0,nu+ny):
+                for j in range(0,nu):
                     w,k_i,l_j = self.deduce_w_from_base_Hak(i,j,sig)
                     params = [w,self.A,self.B,self.C,self.D,G,psig]
                     M = self.mode.build_M(params)
                     Hakqtmp[i,j] = M[k_i,l_j]
             Hak[:,:,sig] = Hakqtmp
 
-        return Hak 
+        return np.round(Hak,4) 
 
     def compute_Hkb(self,psig,G):
         """
@@ -250,7 +286,8 @@ class HoKalmanIdentifier:
         np_c = self.C.shape[2]
 
         sz_beta = self.alpha.shape[0]
-
+        
+        Hkb = np.zeros((ny,sz_beta,np_c))
         for sig in range(0,np_c):
             Hkbqtmp = np.zeros((ny,sz_beta))
             for i in range(0,ny):
@@ -260,7 +297,7 @@ class HoKalmanIdentifier:
                     M = self.mode.build_M(params)
                     Hkbqtmp[i,j] = M[k_i,l_j]
             Hkb[:,:,sig] = Hkbqtmp
-        return Hkb
+        return np.round(Hkb,4)
 
 
     def TrueHoKalmanBase(self,psig):
