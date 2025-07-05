@@ -1,6 +1,6 @@
 .PHONY: all test test-aslpv test-dlpv test-lpv graph run run2
 
-test: test-aslpv test-dlpv test-lpv
+test: test-aslpv test-dlpv test-lpv test-kalman
 
 test-aslpv:
 	@echo Testing asLPV
@@ -13,6 +13,10 @@ test-dlpv:
 test-lpv:
 	@echo Testing LPV
 	@python3 -m unittest test.lpv.LPVTest
+
+test-kalman:
+	@echo Testing HoKalmanIdentifier
+	@python3 -m unittest test.lpv.hoKalmanIdentifierTest
 
 graph:
 	@echo Graph 1

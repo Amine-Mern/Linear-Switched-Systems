@@ -8,8 +8,6 @@ from src.lpv.mode.strategy_Myu import strategy_Myu
 def wrap_func(x):
     if isinstance(x,int):
         return [x]
-    elif (x == []):
-        return []
     else:
         return x
 
