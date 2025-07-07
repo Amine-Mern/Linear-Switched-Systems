@@ -283,7 +283,7 @@ class HoKalmanIdentifier:
         ny = self.C.shape[0]
         np_c = self.C.shape[2]
 
-        sz_beta = self.alpha.shape[0]
+        sz_beta = self.beta.shape[0]
         
         Hkb = np.zeros((ny,sz_beta,np_c))
         for sig in range(0,np_c):
@@ -295,6 +295,8 @@ class HoKalmanIdentifier:
                     M = self.mode.build_M(params)
                     Hkbqtmp[i,j] = M[k_i,l_j]
             Hkb[:,:,sig] = Hkbqtmp
+            print("test")
+            print(Hkbqtmp)
         return np.round(Hkb,4)
 
 
@@ -316,9 +318,8 @@ class HoKalmanIdentifier:
         Hkb = self.compute_Hkb(psig,G)
 
         return (Hab,Habk,Hak,Hkb)
-    
-    @staticmethod
-    def identify(Hab, Habk, Hak, Hkb):
+
+    def identify(self,Hab, Habk, Hak, Hkb):
         """
         Identify system matrices A, B, C from Hankel matrices.
 
@@ -349,10 +350,10 @@ class HoKalmanIdentifier:
         """
         
         nx = Hab.shape[0]
-        nu = Hak[0].shape[1]
-        ny = Hkb[0].shape[0]
-        np_ = len(Habk)
-        np_c = len(Hkb)
+        nu = Hak[:,:,0].shape[1]
+        ny = Hkb[:,:,0].shape[0]
+        np_ = self.A.shape[2]
+        np_c = self.C.shape[2]
 
         A = np.zeros((nx, nx, np_))
         B = np.zeros((nx, nu, np_))
@@ -361,17 +362,51 @@ class HoKalmanIdentifier:
         Hab_inv = np.linalg.pinv(Hab)  
 
         for i in range(np_):
-            A[:, :, i] = Hab_inv @ Habk[i]
+            A[:, :, i] = Hab_inv @ Habk[:,:,i]
             eigvals = np.linalg.eigvals(A[:, :, i])
             if np.any(np.abs(eigvals) > 1):
                 print(f"Warning: A matrix at index {i} is unstable (eigenvalues outside unit circle)")
 
-            B[:, :, i] = Hab_inv @ Hak[i]
+            B[:, :, i] = Hab_inv @ Hak[:,:,i]
 
-        for i in range(np_c):
-            C[:, :, i] = Hkb[i]
+        #for i in range(np_c):
+            C[:, :, 0] = Hkb[:,:,0]
 
         return dLPV(A,C,B,self.D)
     
-    
+    def seperate_Bsig(self,Bsig):
+        nu = self.D.shape[1]
+
+        Gi = Bsig[:,nu:,:]
+        Bi = Bsig[:,:nu,:]
+
+        return (Bi,Gi)
+
+    def compute_Tsig(self,Asig,Csig,Bsig,psig):
+        
+        Bi,Gi = self.seperate_Bsig(Bsig)
+
+        asLPV_sys = asLPV(Asig,Csig,self.K,self.F)
+
+        P_true = asLPV_sys.compute_Pi(psig,self.Q)
+        G_true = asLPV_sys.compute_Gi(psig,self.Q,P_true)
+
+        T_sig_true = np.zeros((Csig.shape[0],Csig.shape[0],Asig.shape[2]))
+
+        for i in range(np):
+            T_sig_true[:,:,i] = (1/psig[i,1])*(Csig @ P_true[:,:,i] @ Csig.T + self.F @ self.Q[:,:,i] @ self.F.T)
+
+
+        return T_sig_true
+
+
+    def compute_K_Q(self,Asig,Bsig,Csig,psig,T_sig):
+        dLPV_sys = dLPV(Asig,Csig,Bsig,self.D)
+        
+        T_sig = self.compute_Tsig(Asig,Csig,Bsig,psig)
+
+        (_,Q_old,K_old) = dLPV_sys.Recursion(T_sig,psig)
+
+        return Q_old,K_old
+
         
