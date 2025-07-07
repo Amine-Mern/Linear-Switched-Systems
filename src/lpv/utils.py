@@ -177,4 +177,46 @@ def compute_Lambda_ydyd(sigma_w, sigma, A, B, C, D, Qu, psig, P_sigma):
     Lambda_ydyd = term1 *(term2 + term3)
     return Lambda_ydyd
 
+def compute_Lambda_ysys(yt, pt, w, psig, sigma_w, sigma, A, B, C, D, Qu, P_sigma):
+    """
+    Compute Lambda^{y_s, y_s} as:
+        Lambda^{y_s, y_s} = Lambda^{y, y}_w - Lambda^{y, d}_w
+
+    Parameters :
+        yt : np.ndarray, shape (ny, M)
+            Output data matrix with yt[:, t] = y(t).
+
+        pt : np.ndarray, shape (np, M)
+            Mode indicator matrix with pt[sigma, t] representing p_sigma(t).
+
+        w : list or np.ndarray
+            Word (sequence of mode indices, zero-based) defining z_w.
+
+        psig : np.ndarray, shape (np,)
+            Probability vector p_sigma for each mode sigma.
+
+        sigma_w : int
+            Mode index for sigma_w in Lambda^{y,d} computation (zero-based).
+
+        sigma : int
+            Mode index for sigma in Lambda^{y,d} computation (zero-based).
+
+        A, B, C, D : list of np.ndarray
+            System matrices per mode, each list of length np with matrices of appropriate dimensions.
+
+        Qu : np.ndarray
+            Input weighting covariance matrix.
+
+        P_sigma : list of np.ndarray
+            List of covariance matrices P_sigma per mode.
+
+    Returns :
+        Lambda_ysys : np.ndarray, shape (ny, ny)
+            Computed Lambda^{y_s, y_s} matrix.
+    """
+
+    Lambda_yy, _ = compute_Lambda_yy(yt, pt, w, psig)
+    Lambda_ydyd = compute_Lambda_ydyd(sigma_w, sigma, A, B, C, D, Qu, psig, P_sigma)
+    Lambda_ysys = Lambda_yy - Lambda_ydyd
+    return Lambda_ysys
 
