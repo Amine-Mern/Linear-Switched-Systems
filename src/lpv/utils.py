@@ -91,6 +91,48 @@ def Myu(w, A, B, C, D, G, psig):
     Myu = np.hstack([Psi_uy, Psi_ys])
     return Myu
 
+
+def compute_Lambda_yy(yt, pt, w, psig):
+    """
+    Compute the empirical covariance Lambda^{y,z_w}.
+
+    Parameters :
+        yt : np.ndarray, shape (ny, M)
+            Output data matrix with yt[:, t] = y(t).
+
+        pt : np.ndarray, shape (np, M)
+            Mode indicator matrix with pt[sigma, t] representing p_sigma(t).
+
+        w : list or np.ndarray
+            Word (sequence of mode indices, zero-based) defining z_w.
+
+        psig : np.ndarray, shape (np,)
+            Probability vector p_sigma for each mode sigma.
+
+    Returns :
+        Lam : np.ndarray, shape (ny, ny)
+            Computed empirical covariance:
+                Lambda = (1/M) * sum_{t=|w|+1}^M y(t) z_w(t)^T
+
+        pw : float
+            Product of probabilities along the word w:
+                p_w = prod_{i} p_{w[i]}
+    """
+
+    ny, M = yt.shape
+    pw = np.prod([psig[idx] for idx in w])
+    temp = np.zeros((ny, ny))
+    for t in range(len(w), M):
+        zw = 1.0
+        for ind, mode_idx in enumerate(w):
+            time_idx = t - len(w) + ind
+            zw *= pt[mode_idx, time_idx]
+        zwt = (1 / np.sqrt(pw)) * yt[:, t - len(w)] * zw
+        temp += np.outer(yt[:, t], zwt)
+
+    Lam = (1 / M) * temp
+    return Lam, pw
+
 def compute_Lambda_ydyd(sigma_w, sigma, A, B, C, D, Qu, psig, P_sigma):
     """
     Calculate Lambda^{yd, yd}_{sigma_w, sigma} according to the paper :
