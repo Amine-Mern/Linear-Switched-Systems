@@ -29,14 +29,14 @@ class asLPVTest(unittest.TestCase):
         # results)
         
         self.A = np.zeros((2,2,2))
-        self.A[:, :, 0] = np.array([[0.4, 0.4], [0.2, 0.1]])
-        self.A[:, :, 1] = np.array([[0.1, 0.1], [0.2, 0.3]])
+        self.A[0, :, :] = np.array([[0.4, 0.4], [0.2, 0.1]])
+        self.A[1, :, :] = np.array([[0.1, 0.1], [0.2, 0.3]])
         
         self.C = np.array([[1, 0]])
         
-        self.K = np.zeros((2, 1, 2))
-        self.K[:, :, 0] = np.array([[0], [1]])
-        self.K[:, :, 1] = np.array([[0], [1]])
+        self.K = np.zeros((2, 2, 1))
+        self.K[0, :, :] = np.array([[0], [1]])
+        self.K[1, :, :] = np.array([[0], [1]])
         
         self.F = np.array([[1]])
         
@@ -88,15 +88,15 @@ class asLPVTest(unittest.TestCase):
         
     def test_isStablyInvertable_False_Unstable_eigValues(self):
         Unstable_A = np.zeros((2, 2, 2))
-        Unstable_A[:, :, 0] = np.array([[1.2, 0.0],
+        Unstable_A[0, :, :] = np.array([[1.2, 0.0],
                        [0.0, 1.1]])
-        Unstable_A[:, :, 1] = np.array([[0.9, 0.4],
+        Unstable_A[1, :, :] = np.array([[0.9, 0.4],
                        [0.3, 0.8]])
 
-        Unst_K = np.zeros((2, 1, 2))
-        Unst_K[:, :, 0] = np.array([[2.0],
+        Unst_K = np.zeros((2, 2, 1))
+        Unst_K[0, :, :] = np.array([[2.0],
                        [-1.0]])
-        Unst_K[:, :, 1] = np.array([[1.5],
+        Unst_K[1, :, :] = np.array([[1.5],
                        [1.5]])
 
         Unst_C = np.array([[1.0, 1.0]])
@@ -124,7 +124,7 @@ class asLPVTest(unittest.TestCase):
         self.assertTrue(Qi[0][0][0] == expected1)
         
         #approx 2.187 in MATLAB
-        self.assertTrue(Qi[0][0][1] == expected2)
+        self.assertTrue(Qi[1][0][0] == expected2)
         
     def test_compute_Pi(self):
         Qi = self.asLPV.compute_Qi(self.v,self.p)
@@ -139,8 +139,8 @@ class asLPVTest(unittest.TestCase):
         # 0.4612 , 4.5167 |--------------------
         
         Expected = np.zeros((2,2,2))
-        Expected[:,:,0] = np.array([[1.0953,0.4612],[0.4612,4.5167]])
-        Expected[:,:,1] = np.array([[0.8352,0.3517],[0.3517,3.4438]])
+        Expected[0,:,:] = np.array([[1.0953,0.4612],[0.4612,4.5167]])
+        Expected[1,:,:] = np.array([[0.8352,0.3517],[0.3517,3.4438]])
         
         self.assertTrue(np.allclose(Pi,Expected,rtol = 1e-4, atol = 1e-6))
 
@@ -155,10 +155,10 @@ class asLPVTest(unittest.TestCase):
         Gi = self.asLPV.compute_Gi(self.psig,Qi,Pi)
         
         ## Expected :
-        Expected = np.zeros((2, 1, 2)) 
-        Expected[:, :, 0] = np.array([[0.6226],
+        Expected = np.zeros((2, 2, 1)) 
+        Expected[0, :, :] = np.array([[0.6226],
                                [2.1018]])
-        Expected[:, :, 1] = np.array([[0.1359],
+        Expected[1, :, :] = np.array([[0.1359],
                                [2.8169]])
         
         self.assertTrue(np.allclose(Gi,Expected,rtol = 1e-4, atol = 1e-6))
@@ -167,21 +167,21 @@ class asLPVTest(unittest.TestCase):
         # We can construct all the expected matrix based on the correct MATLAB values
         expected_An = np.zeros((2,2,2))
         
-        expected_An[:,:,0] = np.array([[0.4,0.4],[0.2,0.1]])
-        expected_An[:,:,1] = np.array([[0.0873,0.0873],[0.1746,0.2619]])
+        expected_An[0,:,:] = np.array([[0.4,0.4],[0.2,0.1]])
+        expected_An[1,:,:] = np.array([[0.0873,0.0873],[0.1746,0.2619]])
         
-        expected_Tsig = np.zeros((1,1,2))
+        expected_Tsig = np.zeros((2,1,1))
         expected_Tsig[0,0,0] = 2.931
-        expected_Tsig[0,0,1] = 3.9636
+        expected_Tsig[1,0,0] = 3.9636
         
         expected_Fmin = np.eye(1)
         
         expected_C = np.zeros((1,2))
         expected_C[0,:] = np.array([1,0])
         
-        expected_G_true = np.zeros((2,1,2))
-        expected_G_true[:,0,0] = np.array([0.6226,2.1018])
-        expected_G_true[:,0,1] = np.array([0.1359,2.8168])
+        expected_G_true = np.zeros((2,2,1))
+        expected_G_true[0,:,0] = np.array([0.6226,2.1018])
+        expected_G_true[1,:,0] = np.array([0.1359,2.8168])
         
         d_system, T_sig = self.asLPV.convertToDLPV(self.v,self.p,self.psig)
         
@@ -212,8 +212,8 @@ class asLPVTest(unittest.TestCase):
         # All singular values are distinct, so every valid SVD differs only by sign of each pair of singular vectors
         
         #Expected MATLAB A
-        exp_A[:, :, 0] = np.array([[0.4645, -0.3579],[-0.1579,  0.0355]])
-        exp_A[:, :, 1] = np.array([[0.1369, -0.1189],[-0.2189,  0.2631]])
+        exp_A[0, :, :] = np.array([[0.4645, -0.3579],[-0.1579,  0.0355]])
+        exp_A[1, :, :] = np.array([[0.1369, -0.1189],[-0.2189,  0.2631]])
         
         #We put Amin and A in absolute values since we want to check the values without the +/- sign
         exp_A_abs = np.abs(exp_A)
@@ -230,9 +230,9 @@ class asLPVTest(unittest.TestCase):
         C_abs = np.abs(C)
 
         #Expected values in MATLAB
-        exp_K = np.zeros((2, 1, 2))
-        exp_K[:, 0, 0] = np.array([-0.1148, 0.9934])
-        exp_K[:, 0, 1] = np.array([-0.1148, 0.9934])
+        exp_K = np.zeros((2, 2, 1))
+        exp_K[0, :, 0] = np.array([-0.1148, 0.9934])
+        exp_K[1, :, 0] = np.array([-0.1148, 0.9934])
 
         #(*)
         exp_K_abs = np.abs(exp_K)
@@ -240,9 +240,9 @@ class asLPVTest(unittest.TestCase):
         
         exp_F = np.eye(1)
 
-        exp_Qmin = np.zeros((1, 1, 2))
+        exp_Qmin = np.zeros((2, 1, 1))
         exp_Qmin[0, 0, 0] = 1.8366
-        exp_Qmin[0, 0, 1] = 2.1872
+        exp_Qmin[1, 0, 0] = 2.1872
         
         self.assertTrue(np.allclose(A_abs,exp_A_abs,rtol=1e-03, atol=1e-6))
         self.assertTrue(np.allclose(C_abs,exp_C_abs,rtol=1e-03, atol=1e-6))

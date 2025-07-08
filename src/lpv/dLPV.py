@@ -78,7 +78,7 @@ class dLPV(LPV):
         
         for k in range (Ntot-1):
             for i in range(np_):
-                x[:, k+1] += (self.A[:, :, i] @ x[:, k] + self.B[:, :, i] @ u[:, k]) * p[i, k] 
+                x[:, k+1] += (self.A[i, :, :] @ x[:, k] + self.B[i, :, :] @ u[:, k]) * p[i, k] 
             y[:, k] = self.C @ x[:, k] + self.D @ u[:, k]
             yif[:, k] = self.C @ x[:, k]
         return y, yif, x
@@ -105,9 +105,9 @@ class dLPV(LPV):
                   Reduced initial state vector
         TESTED
         """
-        Anum = np.vstack([self.A[:, :, i] for i in range(self.np)])
+        Anum = np.vstack([self.A[i, :, :] for i in range(self.np)])
         
-        Bnum = np.hstack([self.B[:, :, i] for i in range(self.np)])
+        Bnum = np.hstack([self.B[i, :, :] for i in range(self.np)])
         
         Cnum = np.vstack([self.C for _ in range(self.np)])
         x0 = x0.reshape(-1, 1)
@@ -140,25 +140,16 @@ class dLPV(LPV):
         Reach_mat = V_f
         reduced_order = Reach_mat.shape[1]
 
-        Ar = np.zeros((reduced_order, reduced_order, self.np))
-        Br = np.zeros((reduced_order, self.nu, self.np))
+        Ar = np.zeros((self.np, reduced_order, reduced_order))
+        Br = np.zeros((self.np, reduced_order, self.nu))
         
         for i in range(self.np):
-            Ar[:, :, i] = Reach_mat.T @ self.A[:, :, i] @ Reach_mat
-            Br[:, :, i] = Reach_mat.T @ self.B[:, :, i]
+            Ar[i, :, :] = Reach_mat.T @ self.A[i, :, :] @ Reach_mat
+            Br[i, :, :] = Reach_mat.T @ self.B[i, :, :]
 
         Cr = self.C @ Reach_mat
         x0r = Reach_mat.T @ x0
         
-#         for i in range(self.np):
-#             print(f"Ar[:,:,{i}]:\n", Ar[:, :, i])
-#         for i in range(self.np):
-#             print(f"Br[:,:,{i}]:\n", Br[:, :, i])
-#         print("Cr = ",  Cr)
-#         print("x0r = ", x0r)
-#         print("reach_mat = ", Reach_mat)
-#         print("r = " ,reduced_order)
-#         
         return Reach_mat, reduced_order, Ar, Br, Cr, x0r
 
     
@@ -188,14 +179,13 @@ class dLPV(LPV):
         Cnum = np.vstack([self.C for _ in range(self.np)])
         x0 = x0.reshape(-1,1)
         Wf = orth(Cnum.T)
-        Wf = Wf
         r = np.linalg.matrix_rank(Wf)
 
         quit = False
         while not quit:
             Wprime = Cnum.T
             for i in range(self.np):
-                Wprime = np.hstack((Wprime, self.A[:, :, i].T @ Wf))
+                Wprime = np.hstack((Wprime, self.A[i, :, :].T @ Wf))
             new_Wf = orth(Wprime)
             quit = new_Wf.shape[1] == r
             r = new_Wf.shape[1]
@@ -203,26 +193,17 @@ class dLPV(LPV):
 
         reduced_order = r
 
-        Ar = np.zeros((reduced_order, reduced_order, self.np))
-        Br = np.zeros((reduced_order, self.B.shape[1], self.np))
+        Ar = np.zeros((self.np, reduced_order, reduced_order))
+        Br = np.zeros((self.np, reduced_order, self.B.shape[2]))
         for i in range(self.np):
-            Ar[:, :, i] = Wf.T @ self.A[:, :, i] @ Wf
-            Br[:, :, i] = Wf.T @ self.B[:, :, i]
+            Ar[i, :, :] = Wf.T @ self.A[i, :, :] @ Wf
+            Br[i, :, :] = Wf.T @ self.B[i, :, :]
 
         Cr = self.C @ Wf
         x0r = Wf.T @ x0
 
         Obs_mat = Wf
         
-#         for i in range(self.np):
-#             print(f"Ao[:,:,{i}]:\n", Ar[:, :, i])
-#         for i in range(self.np):
-#             print(f"Bo[:,:,{i}]:\n", Br[:, :, i])
-#         print("Co = ",  Cr)
-#         print("x0r = ", x0r)
-#         print("Obs_mat = ", Obs_mat)
-#         print("r = " ,reduced_order)
-
         return Obs_mat, reduced_order, Ar, Br, Cr, x0r
     
     def minimize(self, x0):
@@ -274,18 +255,18 @@ class dLPV(LPV):
         if self.nx != other.nx or self.np != other.np:
             return False
         
-        Anum3 = np.zeros((2 * self.nx, 2 * self.nx, self.np))
-        Bnum3 = np.zeros((2 * self.nx, self.nu, self.np))
+        Anum3 = np.zeros((self.np, 2 * self.nx, 2 * self.nx))
+        Bnum3 = np.zeros((self.np, 2 * self.nx, self.nu))
         
         
         for i in range(self.np):
-            Anum3[:, :, i] = np.block([
-                [self.A[:, :, i], np.zeros((self.nx, self.nx))],
-                [np.zeros((self.nx, self.nx)), other.A[:, :, i]]
+            Anum3[i, :, :] = np.block([
+                [self.A[i, :, :], np.zeros((self.nx, self.nx))],
+                [np.zeros((self.nx, self.nx)), other.A[i, :, :]]
             ])
-            Bnum3[:, :, i] = np.vstack([
-                self.B[:, :, i],
-                other.B[:, :, i]
+            Bnum3[i, :, :] = np.vstack([
+                self.B[i, :, :],
+                other.B[i, :, :]
             ])
         
         Cnum3 = np.hstack([self.C, other.C])
@@ -307,13 +288,13 @@ class dLPV(LPV):
             return False  
 
         for i in range(self.np):
-            Ai1 = self.A[:, :, i]
-            Ai2 = other.A[:, :, i]
+            Ai1 = self.A[i, :, :]
+            Ai2 = other.A[i, :, :]
             if np.linalg.norm(T @ Ai1 - Ai2 @ T) > tol:
                 return False
 
-            Bi1 = self.B[:, :, i]
-            Bi2 = other.B[:, :, i]
+            Bi1 = self.B[i, :, :]
+            Bi2 = other.B[i, :, :]
             if np.linalg.norm(T @ Bi1 - Bi2) > tol:
                 return False
 
@@ -351,30 +332,30 @@ class dLPV(LPV):
             ny = self.ny
             np_ = self.np
 
-            Pold = np.zeros((nx, nx, np_))
-            Qold = np.zeros((ny, ny, np_))
-            Kold = np.zeros((nx, ny, np_))
+            Pold = np.zeros((np_, nx, nx))
+            Qold = np.zeros((np_, ny, ny))
+            Kold = np.zeros((np_, nx, ny))
             max_err = np.ones(np_)
             while np.any(max_err > 1e-8):
 
                 for sig in range(np_):
-                    Qold[:, :, sig] = psig[sig, 0] * T_sig[:, :, sig] - C @ Pold[:, :, sig] @ C.T
+                    Qold[sig, :, :] = psig[sig, 0] * T_sig[sig, :, :] - C @ Pold[sig, :, :] @ C.T
                     
-                    invQ = np.linalg.inv(Qold[:, :, sig])
+                    invQ = np.linalg.inv(Qold[sig, :, :])
                     sqrt_psig = np.sqrt(psig[sig, 0])
                     inv_sqrt_psig = 1.0 / sqrt_psig
-                    Kold[:, :, sig] = (sqrt_psig * B[:, :, sig] -
-                                       inv_sqrt_psig * A[:, :, sig] @ Pold[:, :, sig] @ C.T) @ invQ
+                    Kold[sig, :, :] = (sqrt_psig * B[sig, :, :] -
+                            inv_sqrt_psig * A[sig, :, :] @ Pold[sig, :, :] @ C.T) @ invQ
                     Pnew = np.zeros_like(Pold)
                 for sig in range(np_):
                     for sig1 in range(np_):
-                        term1 = (1 / psig[sig1, 0]) * A[:, :, sig1] @ Pold[:, :, sig1] @ A[:, :, sig1].T
-                        term2 = Kold[:, :, sig1] @ Qold[:, :, sig1] @ Kold[:, :, sig1].T
-                        Pnew[:, :, sig] += psig[sig, 0] * (term1 + term2)
+                        term1 = (1 / psig[sig1, 0]) * A[sig1, :, :] @ Pold[sig1, :, :] @ A[sig1, :, :].T
+                        term2 = Kold[sig1, :, :] @ Qold[sig1, :, :] @ Kold[sig1, :, :].T
+                        Pnew[sig, :, :] += psig[sig, 0] * (term1 + term2)
 
                 for i in range(np_):
-                    num = np.linalg.norm(Pnew[:, :, i] - Pold[:, :, i])
-                    den = np.linalg.norm(Pold[:, :, i]) + 0.1
+                    num = np.linalg.norm(Pnew[i, :, :] - Pold[i, :, :])
+                    den = np.linalg.norm(Pold[i, :, :]) + 0.1
                     max_err[i] = num / den
 
                 Pold = np.copy(Pnew)
@@ -402,7 +383,7 @@ class dLPV(LPV):
         Pmin, Qmin, Kmin = self.Recursion(T_sig, psig)
         Amin = np.zeros_like(self.A)
         for i in range(self.np):
-            Amin[:, :, i] = (1.0 / np.sqrt(psig[i, 0])) * self.A[:, :, i]
+            Amin[i, :, :] = (1.0 / np.sqrt(psig[i, 0])) * self.A[i, :, :]
 
         F = np.eye(self.ny)
         

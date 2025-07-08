@@ -12,9 +12,9 @@ def calculate_psig(p):
     return psig
 
 def check_dimensions(A, C, K, F, p):
-    nx, _, n_sig = A.shape
+    n_sig, _, nx = A.shape
     ny, nx_c = C.shape
-    nx_k, nw, n_sig_k = K.shape
+    n_sig_k, nx_k, nw = K.shape
     ny_f, nw_f = F.shape
     np_, Ntot = p.shape
 
@@ -27,7 +27,7 @@ def check_dimensions(A, C, K, F, p):
 
 def main(A, C, K, F, p, x0=None):
     check_dimensions(A, C, K, F, p)
-    nx = A.shape[0]
+    nx = A.shape[1]
     ny = C.shape[0]
     Ntot = p.shape[1]
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
          [0.0, 0.3]]
     ]).transpose(1, 2, 0)
 
-    K = np.random.randn(2, 1, 2) * 0.01
+    K = np.random.randn(2, 2, 1) * 0.01
     C = np.array([[1.0, 0.0]])
     F = np.array([[2.0]])  # F ≠ I
     p = np.random.randn(2, 100)

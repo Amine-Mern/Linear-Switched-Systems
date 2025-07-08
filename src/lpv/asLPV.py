@@ -51,7 +51,7 @@ class asLPV(LPV):
     """
     
     def __init__(self, A, C, K, F):
-        self.ne = K.shape[1]
+        self.ne = K.shape[2]
         super().__init__(A, C, K=K, F=F, B=None, D=None,)
     
     def simulate_y(self, v, p):
@@ -84,8 +84,8 @@ class asLPV(LPV):
         
         for k in range (Ntot-1):
             for i in range(np_):
-                term_noise = self.K[:,:,i] @ v[:,k]
-                x[:, k+1] += (self.A[:, :, i] @ x[:, k] + term_noise) * p[i, k] 
+                term_noise = self.K[i,:,:] @ v[:,k]
+                x[:, k+1] += (self.A[i, :, :] @ x[:, k] + term_noise) * p[i, k] 
             noise_output = self.F @ v[:,k]
             y[:, k] = self.C @ x[:, k] + noise_output
             ynf[:, k] = self.C @ x[:, k]
@@ -104,7 +104,7 @@ class asLPV(LPV):
         """
         M = np.zeros((self.nx**2,self.nx**2))
         for i in range(1,self.np):
-            A_KC = self.A[:,:,i]-self.K[:,:,i] @ self.C
+            A_KC = self.A[i,:,:]-self.K[i,:,:] @ self.C
             M += psig[i] * np.kron(A_KC,A_KC);
         epsi = 10**(-5)
                 
@@ -135,12 +135,12 @@ class asLPV(LPV):
         Compute the matrix Q_i = E[v(t) v(t)^T * mu_i(t)^2]
         TESTED
         """
-        Q_true = np.zeros((self.ne, self.ne, self.np))
+        Q_true = np.zeros((self.np, self.ne, self.ne))
         Ntot = v.shape[1]
         for i in range(self.np):
             for t in range(Ntot):
-                Q_true[:,:,i] = Q_true[:,:,i] + v[:,t] @ v[:,t].T * (p[i,t]**2)
-            Q_true[:,:,i] = Q_true[:,:,i]/Ntot
+                Q_true[i,:,:] = Q_true[i,:,:] + v[:,t] @ v[:,t].T * (p[i,t]**2)
+            Q_true[i,:,:] = Q_true[i,:,:]/Ntot
         
         return np.round(Q_true,4)
         
@@ -149,20 +149,20 @@ class asLPV(LPV):
         Computes the stationary covariance matrix P_i via iterative Lyapunov recursion.
         TESTED
         """
-        P_true_old = np.zeros((self.nx, self.nx, self.np))
-        P_true_new = np.zeros((self.nx,self.nx,self.np))
+        P_true_old = np.zeros((self.np, self.nx, self.nx))
+        P_true_new = np.zeros((self.np,self.nx,self.nx))
         for i in range(self.np):
-            P_true_old[:,:,i] = np.zeros((self.nx,self.nx))
+            P_true_old[i,:,:] = np.zeros((self.nx,self.nx))
         
         max_ = np.ones((self.np,1))
         M_e = 1e-5 * np.ones(self.np)
         while np.any(max_ > M_e):
             for sig in range(self.np):
-                P_true_new[:,:,sig] = np.zeros((self.nx,self.nx))
+                P_true_new[sig,:,:] = np.zeros((self.nx,self.nx))
                 for sig1 in range(self.np):
-                    P_true_new[:,:,sig] += psig[sig,0] * (self.A[:,:,sig1] @ P_true_old[:,:,sig1]@ self.A[:,:,sig1].T + self.K[:,:,sig1] @ Q_true[:,:,sig1] @ self.K[:,:,sig1].T)
+                    P_true_new[sig,:,:] += psig[sig,0] * (self.A[sig1,:,:] @ P_true_old[sig1,:,:]@ self.A[sig1,:,:].T + self.K[sig1,:,:] @ Q_true[sig1,:,:] @ self.K[sig1,:,:].T)
             for i in range(self.np):
-                max_[i] = np.linalg.norm(P_true_new[:, :, i] - P_true_old[:, :, i], ord=2) / (np.linalg.norm(P_true_old[:, :, i], ord=2) + 1)
+                max_[i] = np.linalg.norm(P_true_new[i, :, :] - P_true_old[i, :, :], ord=2) / (np.linalg.norm(P_true_old[i, :, :], ord=2) + 1)
             
             P_true_old = P_true_new.copy()
         
@@ -177,9 +177,9 @@ class asLPV(LPV):
         Computes the matrix G_i used in the innovation form of the LPV system.
         TESTED
         """
-        G_true = np.zeros((self.nx, self.ny, self.np))
+        G_true = np.zeros((self.np, self.nx, self.ny))
         for i in range(self.np):
-            G_true[:,:,i] = (1/math.sqrt(psig[i,0])) * (self.A[:,:,i] @ P_true_new[:,:,i] @ self.C.T + self.K[:,:,i] @ Q_true[:,:,i] @ self.F.T)
+            G_true[i,:,:] = (1/math.sqrt(psig[i,0])) * (self.A[i,:,:] @ P_true_new[i,:,:] @ self.C.T + self.K[i,:,:] @ Q_true[i,:,:] @ self.F.T)
         
         G_true_rounded = np.round(G_true,4)
         return G_true_rounded
@@ -196,12 +196,12 @@ class asLPV(LPV):
         G_true = self.compute_Gi(psig,Q_true,P_true)
         
         # Matrix we wish to calculate
-        T_sig = np.zeros((self.ny,self.ny,self.np))
-        An = np.zeros((self.nx,self.nx,self.np))
+        T_sig = np.zeros((self.np,self.ny,self.ny))
+        An = np.zeros((self.np,self.nx,self.nx))
         
         for i in range(self.np):
-            T_sig[:,:,i] = (1/psig[i,0]) * (self.C @ P_true[:,:,i] @ self.C.T + self.F @ Q_true[:,:,i] @ self.F.T)
-            An[:,:,i] = (math.sqrt(psig[i,0]) * self.A[:,:,i])
+            T_sig[i,:,:] = (1/psig[i,0]) * (self.C @ P_true[i,:,:] @ self.C.T + self.F @ Q_true[i,:,:] @ self.F.T)
+            An[i,:,:] = (math.sqrt(psig[i,0]) * self.A[i,:,:])
         
         # We create a DLPV System with arguments such as
         # A : An

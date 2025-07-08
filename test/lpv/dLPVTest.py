@@ -6,17 +6,17 @@ from src.lpv.asLPV import asLPV
 class dLPVTest(unittest.TestCase):
     def setUp(self):
         A = np.zeros((2, 2, 2))
-        B = np.zeros((2, 1, 2))
+        B = np.zeros((2, 2, 1))
         C = np.array([[1.0, 0.0]])
         D = np.array([[0.0]])
 
-        A[:, :, 0] = np.array([[0.8, 0.1],
+        A[0, :, :] = np.array([[0.8, 0.1],
                                 [0.0, 0.5]])
-        A[:, :, 1] = np.array([[0.5, 0.2],
+        A[1, :, :] = np.array([[0.5, 0.2],
                                 [0.1, 0.6]])
-        B[:, :, 0] = np.array([[1.0],
+        B[0, :, :] = np.array([[1.0],
                                 [0.0]])
-        B[:, :, 1] = np.array([[0.5],
+        B[1, :, :] = np.array([[0.5],
                                 [1.0]])
         self.sys = dLPV(A, C, B, D)
         
@@ -43,8 +43,8 @@ class dLPVTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(ortho_test, np.eye(r), decimal=6,
                   err_msg="The columns of Reach_mat are not orthonormal")
         
-        self.assertEqual(Ar.shape, (r, r, 2), "Ar shape incorrect")
-        self.assertEqual(Br.shape, (r, 1, 2), "Br shape incorrect")
+        self.assertEqual(Ar.shape, (2, r, r), "Ar shape incorrect")
+        self.assertEqual(Br.shape, (2, r, 1), "Br shape incorrect")
         self.assertEqual(Cr.shape, (1, r), "Cr shape incorrect")
         self.assertEqual(x0r.shape, (r, 1), "x0r shape incorrect")
         
@@ -59,8 +59,8 @@ class dLPVTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(ortho_test, np.eye(r), decimal=6,
               err_msg="The columns of Obs_mat are not orthonormal")
         
-        self.assertEqual(Ao.shape, (r, r, 2), "Ao shape incorrect")
-        self.assertEqual(Bo.shape, (r, 1, 2), "Bo shape incorrect")
+        self.assertEqual(Ao.shape, (2, r, r), "Ao shape incorrect")
+        self.assertEqual(Bo.shape, (2, r, 1), "Bo shape incorrect")
         self.assertEqual(Co.shape, (1, r), "Co shape incorrect")
         self.assertEqual(x0o.shape, (r, 1), "x0o shape incorrect")
         
@@ -73,8 +73,8 @@ class dLPVTest(unittest.TestCase):
             
         r = minimal_sys.A.shape[0]
         self.assertIsInstance(minimal_sys, dLPV)
-        self.assertEqual(minimal_sys.A.shape, (r, r, self.sys.np), "A shape is incorrect")
-        self.assertEqual(minimal_sys.B.shape, (r, self.sys.nu, self.sys.np), "B shape is incorrect")
+        self.assertEqual(minimal_sys.A.shape, (self.sys.np, r, r), "A shape is incorrect")
+        self.assertEqual(minimal_sys.B.shape, (self.sys.np, r, self.sys.nu), "B shape is incorrect")
         self.assertEqual(minimal_sys.C.shape, (self.sys.ny, r), "C shape is incorrect")
         self.assertEqual(minimal_sys.D.shape, (self.sys.ny, self.sys.nu), "D shape is incorrect")
         self.assertEqual(x0m.shape, (r, 1), "x0 shape is incorrect")
@@ -82,15 +82,15 @@ class dLPVTest(unittest.TestCase):
         
     def test_isomorphic_systems(self):
         A2 = np.zeros((2,2,2))
-        B2 = np.zeros((2,1,2))
+        B2 = np.zeros((2,2,1))
         C2 = np.zeros((1,2))
         D2 = np.zeros((1,1))
         
         T = np.array([[1,2], [0,1]])
         T_inv = np.linalg.inv(T)
         for i in range(2):
-            A2[:,:,i] = T @ self.sys.A[:,:,i] @ T_inv
-            B2[:,:,i] = T @ self.sys.B[:,:,i]
+            A2[i,:,:] = T @ self.sys.A[i,:,:] @ T_inv
+            B2[i,:,:] = T @ self.sys.B[i,:,:]
         C2 = self.sys.C @ T_inv
         D2 = self.sys.D
         sys2 = dLPV (A2, C2, B2, D2)
@@ -100,7 +100,7 @@ class dLPVTest(unittest.TestCase):
         
     def test_non_isomorphic_systems(self):
         A2 = np.zeros((2,2,2))
-        B2 = np.zeros((2,1,2))
+        B2 = np.zeros((2,2,1))
         C2 = np.zeros((1,2))
         D2 = np.zeros((1,1))
         sys2 = dLPV (A2, C2, B2, D2)
@@ -112,21 +112,21 @@ class dLPVTest(unittest.TestCase):
         nx = 2
         ny = 1
         np_ = 2
-        A = np.zeros((nx, nx, np_))
-        B = np.zeros((nx, ny, np_))
+        A = np.zeros((np_, nx, nx))
+        B = np.zeros((np_, nx, ny))
         C = np.array([[1.0, 0.0]])
 
-        A[:, :, 0] = np.array([[0.9, 0.1],
+        A[0, :, :] = np.array([[0.9, 0.1],
                               [0.0, 0.8]])
-        A[:, :, 1] = np.array([[0.7, 0.2],
+        A[1, :, :] = np.array([[0.7, 0.2],
                               [0.1, 0.6]])
-        B[:, :, 0] = np.array([[0.1],
+        B[0, :, :] = np.array([[0.1],
                               [0.0]])
-        B[:, :, 1] = np.array([[0.05],
+        B[1, :, :] = np.array([[0.05],
                               [0.02]])
-        T_sig = np.zeros((ny, ny, np_))
-        T_sig[:, :, 0] = np.array([[10.0]])
-        T_sig[:, :, 1] = np.array([[5.0]])
+        T_sig = np.zeros((np_, ny, ny))
+        T_sig[0, :, :] = np.array([[10.0]])
+        T_sig[1, :, :] = np.array([[5.0]])
 
         psig = np.array([[0.6], [0.4]])
 
@@ -137,29 +137,29 @@ class dLPVTest(unittest.TestCase):
 
         P, Q, K = sys.Recursion(T_sig, psig)
         
-        self.assertEqual(P.shape, (self.sys.nx, self.sys.nx, self.sys.np))
-        self.assertEqual(Q.shape, (self.sys.ny, self.sys.ny, self.sys.np))
-        self.assertEqual(K.shape, (self.sys.nx, self.sys.ny, self.sys.np))
+        self.assertEqual(P.shape, (self.sys.np, self.sys.nx, self.sys.nx))
+        self.assertEqual(Q.shape, (self.sys.np, self.sys.ny, self.sys.ny))
+        self.assertEqual(K.shape, (self.sys.np, self.sys.nx, self.sys.ny))
         
     def test_convert_to_asLPV(self):
         nx = 2
         ny = 1
         np_ = 2
-        A = np.zeros((nx, nx, np_))
-        B = np.zeros((nx, ny, np_))
+        A = np.zeros((np_, nx, nx))
+        B = np.zeros((np_, nx, ny))
         C = np.array([[1.0, 0.0]])
 
-        A[:, :, 0] = np.array([[0.9, 0.1],
+        A[0, :, :] = np.array([[0.9, 0.1],
                               [0.0, 0.8]])
-        A[:, :, 1] = np.array([[0.7, 0.2],
+        A[1, :, :] = np.array([[0.7, 0.2],
                               [0.1, 0.6]])
-        B[:, :, 0] = np.array([[0.1],
+        B[0, :, :] = np.array([[0.1],
                               [0.0]])
-        B[:, :, 1] = np.array([[0.05],
+        B[1, :, :] = np.array([[0.05],
                               [0.02]])
-        T_sig = np.zeros((ny, ny, np_))
-        T_sig[:, :, 0] = np.array([[10.0]])
-        T_sig[:, :, 1] = np.array([[5.0]])
+        T_sig = np.zeros((np_, ny, ny))
+        T_sig[0, :, :] = np.array([[10.0]])
+        T_sig[1, :, :] = np.array([[5.0]])
 
         psig = np.array([[0.6], [0.4]])
 
@@ -170,9 +170,9 @@ class dLPVTest(unittest.TestCase):
         as_sys, Qmin = self.sys.convert_to_asLPV(T_sig, psig)
 
         self.assertTrue(isinstance(as_sys, asLPV), "Returned system is not an instance of asLPV")
-        self.assertEqual(Qmin.shape, (self.sys.ny, self.sys.ny, self.sys.np), "Qmin shape incorrect")
+        self.assertEqual(Qmin.shape, (self.sys.np, self.sys.ny, self.sys.ny), "Qmin shape incorrect")
         self.assertEqual(as_sys.A.shape, self.sys.A.shape, "A shape mismatch")
-        self.assertEqual(as_sys.K.shape, (self.sys.nx, self.sys.ny, self.sys.np), "K shape mismatch")
+        self.assertEqual(as_sys.K.shape, (self.sys.np, self.sys.nx, self.sys.ny), "K shape mismatch")
         self.assertEqual(as_sys.C.shape, self.sys.C.shape, "C shape mismatch")
         self.assertEqual(as_sys.F.shape, (self.sys.ny, self.sys.ny), "F shape mismatch")
 

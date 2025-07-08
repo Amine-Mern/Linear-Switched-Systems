@@ -63,7 +63,7 @@ class LPV:
         self.D = D
         self.F = F
         
-        self.nx = A.shape[0]
+        self.nx = A.shape[1]
         self.ny = C.shape[0]
         
         if (D != None) :
@@ -71,7 +71,7 @@ class LPV:
         else :
             self.nu = 0
         
-        self.np = A.shape[2] if A.ndim == 3 else 1
+        self.np = A.shape[0] if A.ndim == 3 else 1
         
     
     def simulate_y(self, u, v, p, Ntot):
@@ -104,8 +104,8 @@ class LPV:
         
         for k in range (Ntot-1):
             for i in range(np_):
-                term_noise = self.K[:,:,1] @ v[:,k]
-                x[:, k+1] += (self.A[:, :, i] @ x[:, k] + self.B[:, :, i] @ u[:, k] + term_noise) * p[i, k] 
+                term_noise = self.K[1,:,:] @ v[:,k]
+                x[:, k+1] += (self.A[i,:,:] @ x[:, k] + self.B[i, :, :] @ u[:, k] + term_noise) * p[i, k] 
             noise_output = self.F @ v[:,k]
             y[:, k] = self.C @ x[:, k] + self.D @ u[:, k] + noise_output
             ynf[:, k] = self.C @ x[:, k]
@@ -136,7 +136,7 @@ class LPV:
         for k in range(Ntot):
             Res[:,k] = y[:,k] - self.C @ x1[:,k]
             for i in range(np_):
-                x1[:,k+1] += (self.A[:,:,i] @ x1[:,k] + self.K[:,:,i] @ Res[:,k]) * p[i,k];
+                x1[:,k+1] += (self.A[i,:,:] @ x1[:,k] + self.K[i,:,:] @ Res[:,k]) * p[i,k];
         
         Res[:,-1] = y[:,-1] - self.C @ x1[:,-1]
         
@@ -151,11 +151,11 @@ class LPV:
                   True if stable, False otherwise
         TESTED
         """
-        n = self.A.shape[0]
-        np_ = self.A.shape[2]
+        n = self.A.shape[1]
+        np_ = self.A.shape[0]
         M = np.zeros((n**2,n**2))
         for i in range(np_):
-            M += np.kron(self.A[:,:,i],self.A[:,:,i])
+            M += np.kron(self.A[i,:,:],self.A[i,:,:])
         epsi = 10**(-5)
         eigvals = np.linalg.eigvals(M)
         max_abs_eigval = np.max(np.abs(eigvals))     
@@ -197,8 +197,8 @@ class LPV:
         x0_other_col = x0_other.reshape(-1, 1)
 
         R = np.vstack([
-            np.hstack([x0_col] + [self.B[:, :, i] for i in range(D)]),
-            np.hstack([x0_other_col] + [other.B[:, :, i] for i in range(D)])
+            np.hstack([x0_col] + [self.B[i, :, :] for i in range(D)]),
+            np.hstack([x0_other_col] + [other.B[i, :, :] for i in range(D)])
         ])
 
         compC = np.hstack([self.C, -other.C])
@@ -212,8 +212,8 @@ class LPV:
             
             R_new = []
             for i in range(D):
-                A1_block = self.A[:, :, i]
-                A2_block = other.A[:, :, i]
+                A1_block = self.A[i, :, :]
+                A2_block = other.A[i, :, :]
                 block = np.block([
                     [A1_block, np.zeros((n1, n2))],
                     [np.zeros((n2, n1)), A2_block]

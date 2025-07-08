@@ -5,9 +5,9 @@ def calculate_v(ny, Ntot):
     return np.random.randn(ny,Ntot)
 
 def check_dimensions(A, C, K, F, p):
-    nx, _, n_sig = A.shape
+    n_sig, _, nx = A.shape
     ny, nx_c = C.shape
-    nx_k, nw, n_sig_k = K.shape
+    n_sig_k, nx_k, nw = K.shape
     ny_f, nw_f = F.shape
     np_, Ntot = p.shape
 
@@ -17,7 +17,6 @@ def check_dimensions(A, C, K, F, p):
     assert ny == ny_f, f"C and F must have same number of outputs: {ny} vs {ny_f}"
     assert nw == nw_f, f"K and F must have same number of noise inputs: {nw} vs {nw_f}"
     return True
-
 
 def asLPVGen(nx, ny, nv, np_, psig):
     """
@@ -35,8 +34,8 @@ def asLPVGen(nx, ny, nv, np_, psig):
     """
     out = False
     while not out:
-        A = np.random.randn(nx, nx, np_)
-        K = np.random.randn(nx, nv, np_) * 0.1
+        A = np.random.randn(np_, nx, nx)
+        K = np.random.randn(np_, nx, nv) * 0.1
         C = np.random.randn(ny, nx)
         F = np.eye(ny)
         system = asLPV(A, C, K, F)
@@ -48,10 +47,10 @@ def asLPVGen(nx, ny, nv, np_, psig):
             out = True
     print("A =")
     for i in range(np_):
-        print(f"A[:,:,{i}] =\n{A[:, :, i]}")
+        print(f"A[{i},:,:] =\n{A[i, :, :]}")
     print("\nK =")
     for i in range(np_):
-        print(f"K[:,:,{i}] =\n{K[:, :, i]}")
+        print(f"K[{i},:,:] =\n{K[i, :, :]}")
     print("\nC =\n", C)   
 
     return system

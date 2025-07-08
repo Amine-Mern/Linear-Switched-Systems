@@ -238,9 +238,9 @@ class HoKalmanIdentifier:
         """
         sz_alpha, sz_beta = self.alpha.shape[0],self.beta.shape[0]
         
-        np_ = self.A.shape[2]
+        np_ = self.A.shape[0]
         
-        Habk = np.zeros((sz_alpha, sz_beta, np_))
+        Habk = np.zeros((np_, sz_alpha, sz_beta))
         for sig in range(0,np_):    
             Habqtmp = np.zeros((sz_alpha,sz_beta))
             for i in range(0,sz_alpha):
@@ -249,7 +249,7 @@ class HoKalmanIdentifier:
                     params = [w,self.A,self.B,self.C,self.D,G,psig]
                     M = self.mode.build_M(params)
                     Habqtmp[i,j] = M[k_i,l_j]
-            Habk[:,:,sig] = Habqtmp
+            Habk[sig,:,:] = Habqtmp
         return np.round(Habk,4)
 
 
@@ -257,12 +257,12 @@ class HoKalmanIdentifier:
         """    
         Computes the third sub-hankel matrice used for an LPV-SS model
         """
-        nu = self.B.shape[1] 
+        nu = self.B.shape[2] 
         ny = self.C.shape[0]
-        np_ = self.A.shape[2]
+        np_ = self.A.shape[0]
         sz_alpha = self.alpha.shape[0]
 
-        Hak = np.zeros((sz_alpha,nu,np_))
+        Hak = np.zeros((np_,sz_alpha,nu))
         for sig in range(0,np_):
             Hakqtmp = np.zeros((sz_alpha,nu))
             for i in range(0,sz_alpha):
@@ -271,7 +271,7 @@ class HoKalmanIdentifier:
                     params = [w,self.A,self.B,self.C,self.D,G,psig]
                     M = self.mode.build_M(params)
                     Hakqtmp[i,j] = M[k_i,l_j]
-            Hak[:,:,sig] = Hakqtmp
+            Hak[sig,:,:] = Hakqtmp
 
         return np.round(Hak,4) 
 
@@ -281,11 +281,11 @@ class HoKalmanIdentifier:
         """
 
         ny = self.C.shape[0]
-        np_c = self.C.shape[2]
+        np_c = 1
 
         sz_beta = self.beta.shape[0]
         
-        Hkb = np.zeros((ny,sz_beta,np_c))
+        Hkb = np.zeros((np_c,ny,sz_beta))
         for sig in range(0,np_c):
             Hkbqtmp = np.zeros((ny,sz_beta))
             for i in range(0,ny):
@@ -294,7 +294,7 @@ class HoKalmanIdentifier:
                     params = [w,self.A,self.B,self.C,self.D,G,psig]
                     M = self.mode.build_M(params)
                     Hkbqtmp[i,j] = M[k_i,l_j]
-            Hkb[:,:,sig] = Hkbqtmp
+            Hkb[sig,:,:] = Hkbqtmp
             print("test")
             print(Hkbqtmp)
         return np.round(Hkb,4)
@@ -350,35 +350,36 @@ class HoKalmanIdentifier:
         """
         
         nx = Hab.shape[0]
-        nu = Hak[:,:,0].shape[1]
-        ny = Hkb[:,:,0].shape[0]
-        np_ = self.A.shape[2]
-        np_c = self.C.shape[2]
 
-        A = np.zeros((nx, nx, np_))
-        B = np.zeros((nx, nu, np_))
-        C = np.zeros((ny, nx, np_c))
+        nu = Hak[0,:,:].shape[1]
+        ny = Hkb[0,:,:].shape[0]
+        np_ = self.A.shape[0]
+        np_c = 1 # the attribut C has 1 of depth
+
+        A = np.zeros((np_, nx, nx))
+        B = np.zeros((np_, nx, nu))
+        C = np.zeros((np_c, ny, nx))
 
         Hab_inv = np.linalg.pinv(Hab)  
 
         for i in range(np_):
-            A[:, :, i] = Hab_inv @ Habk[:,:,i]
-            eigvals = np.linalg.eigvals(A[:, :, i])
+            A[i, :, :] = Hab_inv @ Habk[i,:,:]
+            eigvals = np.linalg.eigvals(A[i, :, :])
             if np.any(np.abs(eigvals) > 1):
                 print(f"Warning: A matrix at index {i} is unstable (eigenvalues outside unit circle)")
 
-            B[:, :, i] = Hab_inv @ Hak[:,:,i]
+            B[i, :, :] = Hab_inv @ Hak[i,:,:]
 
         #for i in range(np_c):
-            C[:, :, 0] = Hkb[:,:,0]
+            C[0,:,:] = Hkb[0,:,:]
 
         return dLPV(A,C,B,self.D)
     
     def seperate_Bsig(self,Bsig):
         nu = self.D.shape[1]
 
-        Gi = Bsig[:,nu:,:]
-        Bi = Bsig[:,:nu,:]
+        Gi = Bsig[:,:,nu:]
+        Bi = Bsig[:,:,:nu]
 
         return (Bi,Gi)
 
@@ -391,10 +392,10 @@ class HoKalmanIdentifier:
         P_true = asLPV_sys.compute_Pi(psig,self.Q)
         G_true = asLPV_sys.compute_Gi(psig,self.Q,P_true)
 
-        T_sig_true = np.zeros((Csig.shape[0],Csig.shape[0],Asig.shape[2]))
+        T_sig_true = np.zeros((Csig.shape[0],Csig.shape[0],Asig.shape[0]))
 
         for i in range(np):
-            T_sig_true[:,:,i] = (1/psig[i,1])*(Csig @ P_true[:,:,i] @ Csig.T + self.F @ self.Q[:,:,i] @ self.F.T)
+            T_sig_true[i,:,:] = (1/psig[i,1])*(Csig @ P_true[i,:,:] @ Csig.T + self.F @ self.Q[i,:,:] @ self.F.T)
 
 
         return T_sig_true

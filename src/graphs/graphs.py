@@ -101,14 +101,14 @@ def main(asLPV_sys):
 
 def build_asLPV_example_1():
     A = np.zeros((2,2,2))
-    A[:, :, 0] = np.array([[0.4, 0.4], [0.2, 0.1]])
-    A[:, :, 1] = np.array([[0.1, 0.1], [0.2, 0.3]])
+    A[0, :, :] = np.array([[0.4, 0.4], [0.2, 0.1]])
+    A[1, :, :] = np.array([[0.1, 0.1], [0.2, 0.3]])
         
     C = np.array([[1, 0]])
         
-    K = np.zeros((2, 1, 2))
-    K[:, :, 0] = np.array([[0], [1]])
-    K[:, :, 1] = np.array([[0], [1]])
+    K = np.zeros((2, 2, 1))
+    K[0, :, :] = np.array([[0], [1]])
+    K[1, :, :] = np.array([[0], [1]])
         
     F = np.array([[1]])
     return asLPV(A,C,K,F)
@@ -116,13 +116,13 @@ def build_asLPV_example_1():
 
 def build_asLPV_example_2():
 
-    A = np.zeros((3, 3, 2))
-    A[:, :, 0] = np.array([
+    A = np.zeros((2, 3, 3))
+    A[0, :, :] = np.array([
         [0.4, 0.4, 0.0],
         [0.2, 0.1, 0.0],
         [0.0, 0.0, 0.2]
     ])
-    A[:, :, 1] = np.array([
+    A[1, :, :] = np.array([
         [0.1, 0.1, 0.0],
         [0.2, 0.3, 0.0],
         [0.0, 0.0, 0.2]
@@ -130,9 +130,9 @@ def build_asLPV_example_2():
 
     C = np.array([[10, 0, 0]])
 
-    K = np.zeros((3, 1, 2))
-    K[:, :, 0] = np.array([[0], [1], [1]])
-    K[:, :, 1] = np.array([[0], [1], [1]])
+    K = np.zeros((2, 3, 1))
+    K[0, :, :] = np.array([[0], [1], [1]])
+    K[1, :, :] = np.array([[0], [1], [1]])
 
     F = np.array([[1]])
 
@@ -140,14 +140,14 @@ def build_asLPV_example_2():
 
 def build_asLPV_example_3():
     A = np.zeros((2, 2, 2))
-    A[:, :, 0] = np.array([[0.4, 0.4], [0.2, 0.1]])
-    A[:, :, 1] = np.array([[0.1, 0.1], [0.2, 0.3]])
+    A[0, :, :] = np.array([[0.4, 0.4], [0.2, 0.1]])
+    A[1, :, :] = np.array([[0.1, 0.1], [0.2, 0.3]])
 
     C = np.array([[10, 0]])
 
-    K = np.zeros((2, 1, 2))
-    K[:, :, 0] = np.array([[0], [1]])
-    K[:, :, 1] = np.array([[0], [1]])
+    K = np.zeros((2, 2, 1))
+    K[0, :, :] = np.array([[0], [1]])
+    K[1, :, :] = np.array([[0], [1]])
 
     F = np.array([[1]])
     return asLPV(A,C,K,F)    
