@@ -176,9 +176,9 @@ class hoKalmanIdentifierTest(unittest.TestCase):
         print("---")
         print(Expected_Hkb)
 
-#        self.assertTrue(np.allclose(np.round(Expected_Hkb,4),Hkb_Psi,rtol=1e-3,atol=1e-4))
+        self.assertTrue(np.allclose(np.round(Expected_Hkb,4),Hkb_Psi,rtol=1e-3,atol=1e-4))
 
-#        self.assertTrue(np.allclose(np.round(Expected_Hkb,4),Hkb_Myu,rtol=1e-3,atol=1e-4))
+        self.assertTrue(np.allclose(np.round(Expected_Hkb,4),Hkb_Myu,rtol=1e-3,atol=1e-4))
         
     def test_identify(self):
 
@@ -219,7 +219,7 @@ class hoKalmanIdentifierTest(unittest.TestCase):
 
         self.assertTrue(np.allclose(expected_A,dLPV_sys.A,rtol=1e-3,atol=1e-4))
         self.assertTrue(np.allclose(expected_B,dLPV_sys.B,rtol=1e-3,atol=1e-4))
-#        self.assertTrue(np.allclose(expected_C,dLPV_sys.C,rtol=1e-3,atol=1e-4))
+        self.assertTrue(np.allclose(expected_C,dLPV_sys.C,rtol=1e-3,atol=1e-4))
         self.assertTrue(np.allclose(self.D,dLPV_sys.D,rtol=1e-3,atol=1e-4))
 
         print("---------------")
