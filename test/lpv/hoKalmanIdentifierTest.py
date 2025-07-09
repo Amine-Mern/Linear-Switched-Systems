@@ -157,7 +157,7 @@ class hoKalmanIdentifierTest(unittest.TestCase):
     def test_compute_Hkb(self):
         # Matrix simulated in MATLAB
         
-        Expected_Hkb = np.array([4.49596505087895, 1.79758044633223, 1.11881609865121])
+        Expected_Hkb = np.array([[[4.49596505087895, 1.79758044633223, 1.11881609865121]]])
 
         P = self.HKI.as_intern_sys.compute_Pi(self.psig,self.HKI.Q)
         G = self.HKI.as_intern_sys.compute_Gi(self.psig,self.HKI.Q,P)
@@ -167,14 +167,6 @@ class hoKalmanIdentifierTest(unittest.TestCase):
         self.HKI.switchMode()
 
         Hkb_Myu = self.HKI.compute_Hkb(self.psig,G)
-
-        print("Hkb")
-        
-        print(Hkb_Psi.shape)
-        print(Hkb_Psi)
-
-        print("---")
-        print(Expected_Hkb)
 
         self.assertTrue(np.allclose(np.round(Expected_Hkb,4),Hkb_Psi,rtol=1e-3,atol=1e-4))
 
@@ -211,7 +203,7 @@ class hoKalmanIdentifierTest(unittest.TestCase):
             [0]
         ]
 
-        expected_C = np.array([4.4960,1.7976,1.1188])
+        expected_C = np.array([[[4.4960,1.7976,1.1188]]])
 
         Hab,Habk,Hak,Hkb = self.HKI.TrueHoKalmanBase(self.psig)
 
@@ -222,14 +214,14 @@ class hoKalmanIdentifierTest(unittest.TestCase):
         self.assertTrue(np.allclose(expected_C,dLPV_sys.C,rtol=1e-3,atol=1e-4))
         self.assertTrue(np.allclose(self.D,dLPV_sys.D,rtol=1e-3,atol=1e-4))
 
-        print("---------------")
-        print(expected_C)
-
-        print("---------------")
+    #def test_seperate_Bsig(self):
 
 
-        print(dLPV_sys.C.shape)
-        print(dLPV_sys.C)
+    #def test_compute_Tsig(self):
+
+    
+    #def test_compute_K_Qq(self):
+
 
 
 

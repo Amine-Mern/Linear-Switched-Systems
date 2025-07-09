@@ -375,8 +375,6 @@ class HoKalmanIdentifier:
                     M = self.mode.build_M(params)
                     Hkbqtmp[i,j] = M[k_i,l_j]
             Hkb[sig,:,:] = Hkbqtmp
-            print("test")
-            print(Hkbqtmp)
         return np.round(Hkb,4)
 
 
