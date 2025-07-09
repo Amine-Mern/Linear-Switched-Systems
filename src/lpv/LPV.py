@@ -6,48 +6,49 @@ class LPV:
     This concrete class defines the common structure for LPV system models,
     Especially useful for define specific LPV models such as (asLPV and dLPV..)
     
-    Parameters
-    ----------------
-    A : np.ndarray
-        3D array representing the state transition matrices.
-    B : np.ndarray
-        3D array representing the input matrices.
-    C : np.ndarray
-        2D array representing the output matrix.
-    D : np.ndarray
-        2D array representing the feedthrough matrix.
-    K : np.ndarray, optional
-        3D array representing the process noise matrices. Default is None.
-    F : np.ndarray, optional
-        2D array representing the measurement noise matrix. Default is None.
+    Parameters :
     
-    Attributes
-    ----------
-    nx : int
-        Number of states.
-    ny : int
-        Number of outputs.
-    nu : int
-        Number of inputs.
-    np : int
-        Number of scheduling parameters.
+        A : np.ndarray
+            3D array representing the state transition matrices.
+        B : np.ndarray
+            3D array representing the input matrices.
+        C : np.ndarray
+            2D array representing the output matrix.
+        D : np.ndarray
+            2D array representing the feedthrough matrix.
+        K : np.ndarray, optional
+            3D array representing the process noise matrices. Default is None.
+        F : np.ndarray, optional
+            2D array representing the measurement noise matrix. Default is None.
+        
+    Attributes :
+    
+        nx : int
+            Number of states.
+        ny : int
+            Number of outputs.
+        nu : int
+            Number of inputs.
+        np : int
+            Number of scheduling parameters.
 
-    Methods
-    -------
-    simulate_y(u, v, p, Ntot)
-        Simulates the LPV system output over a time horizon.
+    Methods :
     
-    simulate_Innovation(y,p,Ntot)
-        Simulates the innovation error of an LPV system in innovation form
+        simulate_y(u, v, p, Ntot)
+            Simulates the LPV system output over a time horizon.
+        
+        simulate_Innovation(y,p,Ntot)
+            Simulates the innovation error of an LPV system in innovation form
 
-    is_A_matrix_stable()
-        Checks if the matrix A is stable returns a boolean
-    
-    isEquivalent(other, x0, x0_other, tolerance=1e-5)
-        Checks whether this LPV system is equivalent to another LPV system
-        by comparing their Markov parameters.
-    
+        is_A_matrix_stable()
+            Checks if the matrix A is stable returns a boolean
+        
+        isEquivalent(other, x0, x0_other, tolerance=1e-5)
+            Checks whether this LPV system is equivalent to another LPV system
+            by comparing their Markov parameters.
+        
     """
+
     def __init__(self, A, C, B = None, D = None, K = None, F=None):
         """
         Constructor of the Linear Parameter Varying system
@@ -79,6 +80,7 @@ class LPV:
         Simulate the LPV system output
         
         Parameters:
+        
             - u : ndarray
                   Input array
             - v : ndarray

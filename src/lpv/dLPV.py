@@ -45,6 +45,8 @@ class dLPV(LPV):
     isIsomorphic()
     
     Recursion()
+
+    convert_to_asLPV()
     """
     
     def __init__(self, A, C, B, D):

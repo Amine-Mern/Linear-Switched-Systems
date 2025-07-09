@@ -6,12 +6,30 @@ from src.lpv.mode.strategy_psi import strategy_psi
 from src.lpv.mode.strategy_Myu import strategy_Myu
 
 def wrap_func(x):
+    """
+    Function that wraps x in a list given that x is an int
+    Used in flatten_w and for concatenation
+
+    Parameters :
+        x : Any given argument
+
+    """
     if isinstance(x,int):
         return [x]
     else:
         return x
 
 def flatten_w(w):
+    """
+    Functions that flattens w from a list of doubles and empty lists to an only int list
+
+    Example :
+        flatten_w([1.0,[],2.0,0]) => [1,2,0]
+
+    Parameters :
+        w : the set of words
+    
+    """
 
     sig_j,v_j,sig,u_i = w[0],w[1],w[2],w[3]
 
@@ -34,43 +52,57 @@ class HoKalmanIdentifier:
     Class implementing the Ho-Kalman and the TrueHokalmanBase algorithms for identification of Linear Parameter Varying.
      
     Attributs
-    --------
-    A : np.ndarray
-        3D array representing the state transition matrices.
-
-    B : np.ndarray
-        3D array representing the input matrices.
     
-    C : np.ndarray
-        2D array representing the output matrix.
+        A : np.ndarray
+            3D array representing the state transition matrices.
+
+        B : np.ndarray
+            3D array representing the input matrices.
     
-    D : np.ndarray
-        2D array representing the feedthrough matrix.
-
-    base : Tuple containing two np.ndarray such as base = (alpha,beta)
-        alpha : word index set
-        beta : word index set
-
-    mode : An instance of the modeStrategy class
-        it will be used for changing how M(y,u) is calculated.
-
-    Methods
-    -------
-    TrueHoKalamanBase()
+        C : np.ndarray
+            2D array representing the output matrix.
     
-    switchMode()
+        D : np.ndarray
+            2D array representing the feedthrough matrix.
 
-    Compute_Hab()
+        base : Tuple containing two np.ndarray such as base = (alpha,beta)
+            alpha : word index set
+            beta : word index set
 
-    Compute_Habk()
+        mode : An instance of the modeStrategy class
+            it will be used for changing how M(y,u) is calculated.
 
-    Compute_Hak()
-
-    Compute_Hkb()
-
-    identify(Hab, Habk_list, Hak_list, Hkb_list)
-        Perform the Ho-Kalman identification step.
+    Methods :
     
+        TrueHoKalamanBase()
+    
+        switchMode()
+
+        deduce_w_from_base_Hab()
+
+        deduce_w_from_base_Habk()
+
+        deduce_w_from_base_Hak()
+
+        deduce_w_from_base_Hkb()
+
+        Compute_Hab()
+
+        Compute_Habk()
+
+        Compute_Hak()
+
+        Compute_Hkb()
+
+        identify(Hab, Habk_list, Hak_list, Hkb_list)
+            Perform the Ho-Kalman identification step.
+       
+        Seperate_Bsig()
+
+        Compute_Tsig()
+
+        compute_K_Q()
+
     """
     def __init__(self,A,B,C,D,K,Q,base):
         self.base = base
@@ -104,11 +136,11 @@ class HoKalmanIdentifier:
         """
         Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hab
         
-        i : int
-            Arbitrary index
+            i : int
+                Arbitrary index
 
-        j : int
-            Arbitrary index
+            j : int
+                Arbitrary index
 
         Returns : A Tuple containing :  
             w the set of words
@@ -134,11 +166,11 @@ class HoKalmanIdentifier:
         """
         Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hab
         
-        i : int
-            Arbitrary index
+            i : int
+                Arbitrary index
 
-        j : int
-            Arbitrary index
+            j : int
+                Arbitrary index
 
         Returns : A Tuple containing :  
             w the set of words
@@ -162,11 +194,11 @@ class HoKalmanIdentifier:
         """
         Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hak
         
-        i : int
-            Arbitrary index
+            i : int
+                Arbitrary index
 
-        j : int
-            Arbitrary index
+            j : int
+                Arbitrary index
 
         Returns : A Tuple containing :  
             w the set of words 
@@ -190,15 +222,15 @@ class HoKalmanIdentifier:
         """
         Deduces w (more precisly omega), from the base attribut, used for Hankel matrices Hak
         
-        i : int
-            Arbitrary index
+            i : int
+                Arbitrary index
 
-        j : int
-            Arbitrary index
+            j : int
+                Arbitrary index
 
         Returns : A Tuple containing :  
-            w the set of words 
-            k_i, l_j indexs
+            w : the set of words 
+            k_i, l_j : indexs
 
         """
         sig_j = self.beta[j,0]
@@ -219,6 +251,18 @@ class HoKalmanIdentifier:
     def compute_Hab(self,psig,G):
         """
         Computes the first sub-hankel matrice used for an LPV-SS model
+        
+        Parameters :
+            psig : np.ndarray [np,1]
+                Probability weights for each mode.
+
+            G : np.ndarray 
+                The matrix that is computed thanks to compute_Gi
+
+        Returns :
+            Hab : np.ndarray
+                2D array that represents that first sub-hankel matrix
+        
         """
         sz_alpha,sz_beta = self.alpha.shape[0],self.beta.shape[0]
 
@@ -235,6 +279,18 @@ class HoKalmanIdentifier:
     def compute_Habk(self,psig,G):
         """
         Computes the second sub-hankel matrice used for an LPV-SS model
+        
+        Parameters :
+            psig : np.ndarray [np,1]
+                Probability weights for each mode.
+
+            G : np.ndarray 
+                The matrix that is computed thanks to compute_Gi
+
+        Returns :
+            Habk : np.ndarray
+                3D array that represents the second sub-hankel matrix
+        
         """
         sz_alpha, sz_beta = self.alpha.shape[0],self.beta.shape[0]
         
@@ -256,6 +312,19 @@ class HoKalmanIdentifier:
     def compute_Hak(self,psig,G):
         """    
         Computes the third sub-hankel matrice used for an LPV-SS model
+        
+        Parameters :
+            psig : np.ndarray [np,1]
+                Probability weights for each mode.
+
+            G : np.ndarray 
+                The matrix that is computed thanks to compute_Gi
+
+        Returns :
+            Hak : np.ndarray
+                3D array reprensting the third sub-hankel matrix
+
+        
         """
         nu = self.B.shape[2] 
         ny = self.C.shape[0]
@@ -278,8 +347,19 @@ class HoKalmanIdentifier:
     def compute_Hkb(self,psig,G):
         """
         Computes the last sub-hankel matrice used for an LPV-SS model
-        """
+        
+        Parameters :
+            psig : np.ndarray [np,1]
+                Probability weights for each mode.
 
+            G : np.ndarray 
+                The matrix that is computed thanks to compute_Gi 
+        
+        Returns :
+            Hkb : np.ndarray
+                3D array representing the last sub-hankel matrix
+
+        """
         ny = self.C.shape[0]
         np_c = 1
 
@@ -305,8 +385,12 @@ class HoKalmanIdentifier:
         Computes the Sub-Hankel matrices used for an LPV-SS model
         (Hab,Habk,Hak,Hkb)
 
+        Parameters :
+            psig : np.ndarray
+                Probability weights for each mode
+
         Returns :
-        the Sub-Hankel matrices : (Hab,Habk,Hak,Hkb)
+            the Sub-Hankel matrices : (Hab,Habk,Hak,Hkb)
 
         """
 
@@ -323,29 +407,30 @@ class HoKalmanIdentifier:
         """
         Identify system matrices A, B, C from Hankel matrices.
 
-        Parameters
-        ----------
-        Hab : np.ndarray, shape (nx, nx)
-              Base Hankel matrix H_M (indexed by past and future words).
-        Habk : list of np.ndarray, each shape (nx, nx)
-               List of shifted Hankel matrices H_M^shifted, one per mode/scheduling signal sigma.
+        Parameters :
         
-        Hak : list of np.ndarray, each shape (nx, nu)
-              List of Hankel matrices related to inputs, one per mode/sigma.
-        
-        Hkb : list of np.ndarray, each shape (ny, nx)
-              List of Hankel matrices related to outputs, one per mode/sigma.
+            Hab : np.ndarray, shape (sz_alpha, sz_beta)
+                Base Hankel matrix H_M (indexed by past and future words).
 
-        Returns
-        -------
-        Asig : np.ndarray, shape (nx, nx, np)
-               Array of state transition matrices A.
+            Habk : np.ndarray, each shape (sz_alpha, sz_beta)
+                3D matrix containing shifted Hankel matrices H_M^shifted, one per mode/scheduling signal sigma.
         
-        Bsig : np.ndarray, shape (nx, nu, np)
-               Array of input matrices B.
+            Hak : list of np.ndarray, each shape (sz_alpha, nu)
+                3D matrix containing Hankel matrices related to inputs, one per mode/sigma.
         
-        Csig : np.ndarray, shape (ny, nx, np_c)
-               Array of output matrices C.
+            Hkb : list of np.ndarray, each shape (ny, nx)
+                3D matrix containing Hankel matrices related to outputs, one per mode/sigma.
+
+        Returns :
+        
+            Asig : np.ndarray, shape (nx, nx, np)
+                   Array of state transition matrices A.
+        
+            Bsig : np.ndarray, shape (nx, nu, np)
+                   Array of input matrices B.
+        
+            Csig : np.ndarray, shape (ny, nx, np_c)
+                   Array of output matrices C.
         
         """
         
@@ -376,6 +461,16 @@ class HoKalmanIdentifier:
         return dLPV(A,C,B,self.D)
     
     def seperate_Bsig(self,Bsig):
+        """
+        Seperates the matrix Bsig into two matrices such as : Bsig = [Bi,Gi]
+        
+        Paramaters :
+            Bsig : np.ndarray
+                The deduced B matrix (inside the dLPV) thanks to the identify function 
+
+        Returns :
+            (Bi,Gi) : (np.ndarray,np.ndarray)
+        """
         nu = self.D.shape[1]
 
         Gi = Bsig[:,:,nu:]
@@ -384,6 +479,23 @@ class HoKalmanIdentifier:
         return (Bi,Gi)
 
     def compute_Tsig(self,Asig,Csig,Bsig,psig):
+        """
+        Computes T_sig
+
+        Parameters :
+            Asig : np.ndarray
+                The deduced A matrix (inside the dLPV) thanks to the identify function
+
+            Csig : np.ndarray
+                The deduced C matrix (inside the dLPV) thanks to the identify function
+
+            Bsig : np.ndarray
+                The deduced B matrix (inside the dLPV) thanks to the identify function
+
+            psig : np.ndarray
+                Parameters weights for each mode
+
+        """
         
         Bi,Gi = self.seperate_Bsig(Bsig)
 
@@ -402,6 +514,31 @@ class HoKalmanIdentifier:
 
 
     def compute_K_Q(self,Asig,Bsig,Csig,psig,T_sig):
+        """
+        Parameters :
+            Asig : np.ndarray
+                The deduced A matrix (inside the dLPV) thanks to the identify function
+
+            Csig : np.ndarray
+                The deduced C matrix (inside the dLPV) thanks to the identify function
+
+            Bsig : np.ndarray
+                The deduced B matrix (inside the dLPV) thanks to the identify function
+            
+            psig : np.ndarray
+                Parameters weights for each mode
+            
+            T_sig : np.ndarray
+                Computed thanks to compute_Tsig
+
+        Returns :
+            
+            Q_old : ndarray
+            
+            K_old : ndarray
+
+
+        """
         dLPV_sys = dLPV(Asig,Csig,Bsig,self.D)
         
         T_sig = self.compute_Tsig(Asig,Csig,Bsig,psig)
