@@ -98,6 +98,10 @@ class asLPV(LPV):
         """
         Checks if the autonomous stochastic Linear Parameter Varying System is
         stably invertable
+
+        Parameters:
+            psig : ndarray [np,1]
+                Probability weights for each mode
         
         Returns : Boolean
         TESTED
@@ -118,6 +122,14 @@ class asLPV(LPV):
     def compute_vsp(self,v):
         """
         Computes the average outer product of global variable v.
+        
+        Parameters :
+            v : ndarray
+                Noise array
+
+        Returns :
+            vesp : ndarray[ny,Ntot]
+
         TESTED
         """
         Ntot = v.shape[1]
@@ -133,6 +145,16 @@ class asLPV(LPV):
     def compute_Qi(self,v,p):
         """
         Compute the matrix Q_i = E[v(t) v(t)^T * mu_i(t)^2]
+        
+        Parameters :
+            v : ndarray
+                  Noise array, can be None if no noise
+            p : ndarray
+                  Scheduling
+        
+        Returns :
+            Qi : ndArray
+
         TESTED
         """
         Q_true = np.zeros((self.np, self.ne, self.ne))
@@ -147,6 +169,17 @@ class asLPV(LPV):
     def compute_Pi(self,psig,Q_true):
         """
         Computes the stationary covariance matrix P_i via iterative Lyapunov recursion.
+        
+        Parameters:
+            psig : ndarray [np,1]
+                Probability weights for each mode
+
+            Q_true : ndarray
+                the array compute thanks to compute_Qi
+        
+        Returns :
+            Pi : ndarray
+
         TESTED
         """
         P_true_old = np.zeros((self.np, self.nx, self.nx))
@@ -175,6 +208,16 @@ class asLPV(LPV):
     def compute_Gi(self,psig, Q_true,P_true_new):
         """
         Computes the matrix G_i used in the innovation form of the LPV system.
+        Parameters:
+            psig : ndarray [np,1]
+                Probability weights for each mode
+
+            Q_true : ndarray
+                the array computed thanks to compute_Qi
+
+            P_true_new : ndarray
+                the array computed thanks to compute_Pi 
+
         TESTED
         """
         G_true = np.zeros((self.np, self.nx, self.ny))
@@ -189,6 +232,23 @@ class asLPV(LPV):
         """
         Converts an asLPV to an dLPV
         We calculate T_sig here to use P_True, Q_True, without needing to use them later.
+
+        Parameters :
+            v : ndarray
+                Noise array
+                
+            p : ndarray
+                Scheduling array
+
+            psig : ndarray [np,1]
+                Probability weights for each mode
+        
+        Returns :
+            d_system : DLPV
+                The associated DLPV to the current asLPV
+
+            Tsig : ndarray
+
         TESTED
         """
         Q_true = self.compute_Qi(v,p)
@@ -223,6 +283,22 @@ class asLPV(LPV):
         """
         Finds a minimal stochastic realization (in innovation form) of the current asLPV system.
         Qmin is later used in main
+        
+        Paramaters :
+            v : ndarray
+                Noise array
+                
+            p : ndarray
+                Scheduling array
+
+            psig : ndarray [np,1]
+                Probability weights for each mode
+
+        Returns :
+            as_min_system : asLPV
+                The minimized asLPV system
+            Qmin : ndarray
+
         TESTED
         """
         x0 = np.zeros((self.nx,1))
