@@ -8,3 +8,6 @@ class modeStrategy(ABC) :
     def build_M(self,params):
         pass
     
+    @abstractmethod
+    def search_hak_row_dim(self):
+        pass

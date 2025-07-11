@@ -221,6 +221,7 @@ class asLPV(LPV):
         TESTED
         """
         G_true = np.zeros((self.np, self.nx, self.ny))
+
         for i in range(self.np):
             G_true[i,:,:] = (1/math.sqrt(psig[i,0])) * (self.A[i,:,:] @ P_true_new[i,:,:] @ self.C.T + self.K[i,:,:] @ Q_true[i,:,:] @ self.F.T)
         

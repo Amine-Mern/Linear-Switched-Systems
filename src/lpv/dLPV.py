@@ -346,8 +346,15 @@ class dLPV(LPV):
                     invQ = np.linalg.inv(Qold[sig, :, :])
                     sqrt_psig = np.sqrt(psig[sig, 0])
                     inv_sqrt_psig = 1.0 / sqrt_psig
-                    Kold[sig, :, :] = (sqrt_psig * B[sig, :, :] -
-                            inv_sqrt_psig * A[sig, :, :] @ Pold[sig, :, :] @ C.T) @ invQ
+                    print("VENSTI")
+                    print(Kold.shape)
+                    print(B.shape)
+                    print(Pold.shape)
+                    print(A.shape)
+                    print(C.shape)
+                    print(invQ.shape)
+
+                    Kold[sig, :, :] = (sqrt_psig * B[sig, :, :] - inv_sqrt_psig * A[sig, :, :] @ Pold[sig, :, :] @ C.T) @ invQ
                     Pnew = np.zeros_like(Pold)
                 for sig in range(np_):
                     for sig1 in range(np_):

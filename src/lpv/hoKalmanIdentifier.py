@@ -330,16 +330,19 @@ class HoKalmanIdentifier:
         ny = self.C.shape[0]
         np_ = self.A.shape[0]
         sz_alpha = self.alpha.shape[0]
+        
+        dim = self.mode.search_hak_row_dim(nu,ny)
 
-        Hak = np.zeros((np_,sz_alpha,nu))
+        Hak = np.zeros((np_,sz_alpha,dim))
         for sig in range(0,np_):
-            Hakqtmp = np.zeros((sz_alpha,nu))
+            Hakqtmp = np.zeros((sz_alpha,dim))
             for i in range(0,sz_alpha):
-                for j in range(0,nu):
+                for j in range(0,dim):
                     w,k_i,l_j = self.deduce_w_from_base_Hak(i,j,sig)
                     params = [w,self.A,self.B,self.C,self.D,G,psig]
                     M = self.mode.build_M(params)
                     Hakqtmp[i,j] = M[k_i,l_j]
+
             Hak[sig,:,:] = Hakqtmp
 
         return np.round(Hak,4) 
@@ -394,6 +397,7 @@ class HoKalmanIdentifier:
 
         P = self.as_intern_sys.compute_Pi(psig,self.Q)
         G = self.as_intern_sys.compute_Gi(psig,self.Q,P)
+
         Hab = self.compute_Hab(psig,G)
         Habk = self.compute_Habk(psig,G)
         Hak = self.compute_Hak(psig,G)
@@ -452,9 +456,9 @@ class HoKalmanIdentifier:
                 print(f"Warning: A matrix at index {i} is unstable (eigenvalues outside unit circle)")
 
             B[i, :, :] = Hab_inv @ Hak[i,:,:]
-
-        #for i in range(np_c):
-            C[0,:,:] = Hkb[0,:,:]
+        
+        for i in range(np_c):
+            C[i,:,:] = Hkb[i,:,:]
 
         return dLPV(A,C,B,self.D)
     
@@ -495,23 +499,39 @@ class HoKalmanIdentifier:
 
         """
         
+        print("Bsig")
+        print(Bsig)
+        print(Bsig.shape)
+
         Bi,Gi = self.seperate_Bsig(Bsig)
 
-        asLPV_sys = asLPV(Asig,Csig,self.K,self.F)
+        print("check Bi")
+        print(Bi.shape)
+        print(Bi)
+
+        #C = Csig[0,:,:] #Transform 3D Csig to a 2D Matrix (As used in asLPV)
+        
+        print("Check Gi")
+        print(Gi.shape)
+
+        print(Gi)
+        
+        asLPV_sys = asLPV(Asig,Csig,Gi,self.F)
+
+        np_ = Asig.shape[0]
 
         P_true = asLPV_sys.compute_Pi(psig,self.Q)
         G_true = asLPV_sys.compute_Gi(psig,self.Q,P_true)
 
-        T_sig_true = np.zeros((Csig.shape[0],Csig.shape[0],Asig.shape[0]))
+        T_sig_true = np.zeros((Asig.shape[0],Csig.shape[0],Csig.shape[0]))
 
-        for i in range(np):
-            T_sig_true[i,:,:] = (1/psig[i,1])*(Csig @ P_true[i,:,:] @ Csig.T + self.F @ self.Q[i,:,:] @ self.F.T)
-
+        for i in range(np_):
+            T_sig_true[i,:,:] = (1/psig[i,0])*(Csig @ P_true[i,:,:] @ Csig.T + self.F @ self.Q[i,:,:] @ self.F.T)
 
         return T_sig_true
 
 
-    def compute_K_Q(self,Asig,Bsig,Csig,psig,T_sig):
+    def compute_K_Q(self,Asig,Bsig,Csig,psig):
         """
         Parameters :
             Asig : np.ndarray
@@ -537,9 +557,13 @@ class HoKalmanIdentifier:
 
 
         """
-        dLPV_sys = dLPV(Asig,Csig,Bsig,self.D)
+        C = Csig[0,:,:]
+
+        _,Gi = self.seperate_Bsig(Bsig)
+
+        dLPV_sys = dLPV(Asig,C,Gi,self.D)
         
-        T_sig = self.compute_Tsig(Asig,Csig,Bsig,psig)
+        T_sig = self.compute_Tsig(Asig,C,Bsig,psig)
 
         (_,Q_old,K_old) = dLPV_sys.Recursion(T_sig,psig)
 

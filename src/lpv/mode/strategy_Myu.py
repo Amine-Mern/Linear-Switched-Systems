@@ -33,3 +33,9 @@ class strategy_Myu(modeStrategy):
         M = Myu(w,A,B,C,D,G,psig)
         
         return M
+
+    def search_hak_row_dim(self,nu,ny):
+        """
+        Method that returns the dimension needed for the third sub-hankel matrix depends on the strategy used (Myu or Psi)
+        """
+        return nu+ny
