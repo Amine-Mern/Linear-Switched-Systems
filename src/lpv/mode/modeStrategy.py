@@ -11,3 +11,12 @@ class modeStrategy(ABC) :
     @abstractmethod
     def search_hak_row_dim(self):
         pass
+    
+    
+    @abstractmethod
+    def return_tuple(self,Bi,Gi,D,F):
+        pass
+
+    @abstractmethod
+    def select_sep(self,Bi,Gi):
+        pass

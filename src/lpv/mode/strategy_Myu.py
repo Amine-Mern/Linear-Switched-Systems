@@ -39,3 +39,9 @@ class strategy_Myu(modeStrategy):
         Method that returns the dimension needed for the third sub-hankel matrix depends on the strategy used (Myu or Psi)
         """
         return nu+ny
+    
+    def return_tuple(self,Bi,Gi,D,F):
+        return (Gi,F)
+
+    def select_sep(self,Bi,Gi):
+        return Gi 

@@ -384,6 +384,7 @@ class HoKalmanIdentifier:
     def TrueHoKalmanBase(self,psig):
         """
         Computes the Sub-Hankel matrices used for an LPV-SS model
+        ## It's normal that's it's not the same display as in MATLAB because of numpy but works the same in memory.
         (Hab,Habk,Hak,Hkb)
 
         Parameters :
@@ -499,24 +500,11 @@ class HoKalmanIdentifier:
 
         """
         
-        print("Bsig")
-        print(Bsig)
-        print(Bsig.shape)
-
         Bi,Gi = self.seperate_Bsig(Bsig)
 
-        print("check Bi")
-        print(Bi.shape)
-        print(Bi)
+        (arg1,arg2) = self.mode.return_tuple(Bi,Gi,self.D,self.F) 
 
-        #C = Csig[0,:,:] #Transform 3D Csig to a 2D Matrix (As used in asLPV)
-        
-        print("Check Gi")
-        print(Gi.shape)
-
-        print(Gi)
-        
-        asLPV_sys = asLPV(Asig,Csig,Gi,self.F)
+        asLPV_sys = asLPV(Asig,Csig,arg1,arg2)
 
         np_ = Asig.shape[0]
 
@@ -526,7 +514,7 @@ class HoKalmanIdentifier:
         T_sig_true = np.zeros((Asig.shape[0],Csig.shape[0],Csig.shape[0]))
 
         for i in range(np_):
-            T_sig_true[i,:,:] = (1/psig[i,0])*(Csig @ P_true[i,:,:] @ Csig.T + self.F @ self.Q[i,:,:] @ self.F.T)
+            T_sig_true[i,:,:] = (1/psig[i,0])*(Csig @ P_true[i,:,:] @ Csig.T + arg2 @ self.Q[i,:,:] @ arg2.T)
 
         return T_sig_true
 
@@ -559,9 +547,11 @@ class HoKalmanIdentifier:
         """
         C = Csig[0,:,:]
 
-        _,Gi = self.seperate_Bsig(Bsig)
+        Bi,Gi = self.seperate_Bsig(Bsig)
+        
+        selected_sep = self.mode.select_sep(Bi,Gi)
 
-        dLPV_sys = dLPV(Asig,C,Gi,self.D)
+        dLPV_sys = dLPV(Asig,C,selected_sep,self.D)
         
         T_sig = self.compute_Tsig(Asig,C,Bsig,psig)
 

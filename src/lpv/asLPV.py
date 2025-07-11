@@ -197,10 +197,8 @@ class asLPV(LPV):
             for i in range(self.np):
                 max_[i] = np.linalg.norm(P_true_new[i, :, :] - P_true_old[i, :, :], ord=2) / (np.linalg.norm(P_true_old[i, :, :], ord=2) + 1)
             
-            P_true_old = P_true_new.copy()
-        
-        ## It's normal that's it's not the same display as in MATLAB because of numpy but works the same in memory.
-        
+            P_true_old = P_true_new.copy() 
+
         P_true_new_rounded = np.round(P_true_new,4)
         
         return P_true_new_rounded
