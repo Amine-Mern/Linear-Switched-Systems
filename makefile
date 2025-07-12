@@ -26,6 +26,6 @@ run:
 	@echo Executing main
 	@python3 -m src.main.main
 
-run2: 	
+auto_run: 	
 	@echo Execution Auto_main
 	@python3 -m src.main.Auto_main
