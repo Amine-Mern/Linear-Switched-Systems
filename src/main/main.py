@@ -38,12 +38,9 @@ def main(A, C, K, F, p, x0=None):
     psig = calculate_psig(p)
     
     system = asLPV(A, C, K, F)
-    print(system.is_A_matrix_stable())
-    print(system.isStablyInvertable(psig))
     
     as_min_system, Qmin = system.stochMinimize(v, p, psig)
     
-    # Résultat
     print("\n--- Minimised system ---")
     print("A:\n", as_min_system.A)
     print("C:\n", as_min_system.C)
@@ -55,14 +52,7 @@ def main(A, C, K, F, p, x0=None):
         
         
 if __name__ == "__main__":
-#     A = np.random.randn(2, 2, 2)
-#     K = np.random.randn(2, 1, 2)
-#     C = np.random.randn(1, 2)
-#     F = np.eye(1)
-#     p = np.random.randn(2, 100)
 
-
-#Exemple where its not in innovation form but it works
     A = np.array([
         [[0.5, 0.3],
          [0.0, 0.4]],
@@ -72,7 +62,7 @@ if __name__ == "__main__":
 
     K = np.random.randn(2, 2, 1) * 0.01
     C = np.array([[1.0, 0.0]])
-    F = np.array([[2.0]])  # F ≠ I
+    F = np.array([[2.0]])  
     p = np.random.randn(2, 100)
 
     main(A, C, K, F, p)
