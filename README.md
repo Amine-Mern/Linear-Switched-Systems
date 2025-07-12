@@ -10,32 +10,36 @@ noiseless **deterministic linear parameter-varying (dLPV) system** which is driv
 ## Minimization of asLPV 
 In this part of the project, we define what it means for an LPV (Linear Parameter-Varying) system to have a minimal state-space representation in innovation form. We present algebraic conditions to verify whether a asLPV state-space representation is minimal in forward innovation form and provide an algorithm to transform any stochastic asLPV model into a minimal innovation form.
 
-### main :
---------------------------
---------------------------
-Key components : asLPV class, dLPV class, LPV class. 
---> how to run it
+To model these systems, we provide classes such as asLPV, dLPV, and LPV, which encapsulate the structure and simulation of these models. A main script is included to run simulations on user defined system matrices, allowing you to directly test and visualize your LPV models.
 
-### auto main :
---------------------------
---------------------------
---> how to run it
+*N.B* : To execute the following scripts, position yourself in the root directory `Linear-Switched-Systems` where the makefile is located.
 
-### Exemples/Graphs
---------------------------
---------------------------
---> how to run it
+To run this script, first customize your matrices in `src/main/main.py`. Then, execute it using the following command:
+```sh
+make run
+```
+Additionally, an automatic main script that generates system matrices in innovation form, minimizes them without requiring manual parameter setup.
+```sh
+make auto_run
+```
+### Exemples & Graphs
+Several examples are also provided and visualized using graphs. To generate and view these graphs, simply run: 
+```sh
+make graph
+```
 
-## Hokalman identifier :
-------------------------
-------------------------
---> how to run it
+## Minimal covariance realisation :
+In this part, we present a Ho-Kalman-like algorithm for computing a minimal aLSS
+realization innovation form from My,u. To this end, we first recall the Ho-Kalman realization algorithm for dLSS.
 
-### Psiuy :
-
-### Myu :
+HoKalmanIdentifier is a class for identifying Linear Parameter-Varying (LPV) systems using Ho-Kalman and True Ho-Kalman algorithms.
+It automates the computation of sub-Hankel matrices and the extraction of state-space representations from data, particularly for dLPV systems.
 
 
+### Tools & Requirements
+- [![numpy](https://img.shields.io/badge/numpy-%3E=1.24-blue)](https://numpy.org/)
+- [![scipy](https://img.shields.io/badge/scipy-%3E=1.10-blue)](https://scipy.org/)
+- [![plotext](https://img.shields.io/badge/plotext-latest-lightgrey)](https://github.com/piccolomo/plotext)
 
 
 
