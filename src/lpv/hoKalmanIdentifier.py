@@ -65,6 +65,12 @@ class HoKalmanIdentifier:
         D : np.ndarray
             2D array representing the feedthrough matrix.
 
+        K : np.ndarray
+            3D array representing the process noise matrices
+
+        Q : np.ndarray
+            Q = E[v(t) v(t)^T * mu_i(t) ^ 2]
+
         base : Tuple containing two np.ndarray such as base = (alpha,beta)
             alpha : word index set
             beta : word index set
@@ -559,4 +565,40 @@ class HoKalmanIdentifier:
 
         return Q_old,K_old
 
-        
+
+    def minimal_covar_rz_alg(self,psig):
+        """
+        Minimal covariance realization algorithm
+
+        Arguments : 
+            psig : np.ndarray
+                Parameters weights for each mode
+
+
+        Returns :
+            Tuple of matrices : (Asig/psig , Bsig/psig, K, Q, C, D)
+
+        """
+
+        # No need for the first three steps in Algorithm 6 since we use covar and realization theory
+
+        self.switchMode()
+
+        (Hab_M,Habk_M,Hak_M,Hkb_M) = self.TrueHoKalmanBase(psig)
+
+        dLPV_sys_M = self.identify(Hab_M,Habk_M,Hak_M,Hkb_M)
+
+        Asig,Bsig,Csig,Dsig = dLPV_sys_M.A,dLPV_sys_M.B,dLPV_sys_M.C,dLPV_sys_M.D
+
+        Q,K = self.compute_K_Q(Asig,Bsig,Csig,psig)
+
+        nµ = self.K.shape[0] 
+
+        for i in range(nµ):
+            Asig[i,:,:] = Asig[i,:,:] / psig[i]
+            Bsig[i,:,:] = Bsig[i,:,:] / psig[i]
+
+        tup = (Asig,Bsig,K,Q,Csig,Dsig)
+
+        return tup
+

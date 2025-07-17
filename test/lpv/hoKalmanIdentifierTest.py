@@ -364,3 +364,10 @@ class hoKalmanIdentifierTest(unittest.TestCase):
         self.assertTrue(np.allclose(expected_K,K_old,rtol=1e-3,atol=1e-4))
 
         self.assertTrue(np.allclose(expected_Q,Q_old,rtol=1e-2,atol=1e-3))
+
+
+    def test_minimal_cov_rz_algorithm(self):
+        #No expected values (algorithm not done in MATLAB)
+        #This test verifies if the function compiles well
+
+        (A_res,B_res,K,Q,C_res,D_res) = self.HKI.minimal_covar_rz_alg(self.psig)
