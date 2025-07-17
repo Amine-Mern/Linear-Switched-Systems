@@ -29,12 +29,15 @@ make graph
 ```
 
 ## Minimal covariance realisation :
-In this part, we present a Ho-Kalman-like algorithm for computing a minimal aLSS
-realization innovation form from My,u. To this end, we first recall the Ho-Kalman realization algorithm for dLSS.
+In what follows, we present a Ho-Kalman-like algorithm for computing a minimal aLSS
+realization innovation form from My,u. To this end, we first recall the Ho-Kalman realization algorithm for dLSS. LSS meaning Linear Switched Systems, a model class that generalizes LPVs and captures nonlinear behavior while preserving a linear input-output relationship. This structure makes LSS suitable for modeling certain nonlinear systems and applying classical linear control techniques. 
+
+Although efficient control methods exist for some LSS subclasses, identifying such systems, particularly in the presence of stochastic noise, remains challenging. The code takes a first step by addressing the realization theory for stochastic LSS. 
 
 HoKalmanIdentifier is a class for identifying Linear Parameter-Varying (LPV) systems using Ho-Kalman and True Ho-Kalman algorithms.
-It automates the computation of sub-Hankel matrices and the extraction of state-space representations from data, particularly for dLPV systems.
+It automates the computation of sub-Hankel matrices and the extraction of state-space representations from data, particularly for dLPV systems in realization theory.
 
+Consquently, we use these functions together to make the primary algorithm **'Minimal Covariance Realization Algorithm'** that builds a minimal state-space model from measured covariances between input and output signals.
 
 ### Tools & Requirements
 - [![numpy](https://img.shields.io/badge/numpy-%3E=1.24-blue)](https://numpy.org/)
