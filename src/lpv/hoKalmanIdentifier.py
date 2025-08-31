@@ -109,6 +109,8 @@ class HoKalmanIdentifier:
 
         compute_K_Q()
 
+        minimal_covar_rz_alg()
+
     """
     def __init__(self,A,B,C,D,K,Q,base):
         self.base = base
